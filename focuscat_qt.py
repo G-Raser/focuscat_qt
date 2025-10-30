@@ -36,7 +36,10 @@ ABBREVIATIONS = [
     "e.g.", "i.e.", "etc.", "vs.", "cf.", "fig.", "al.", "ca.",
     "mr.", "mrs.", "ms.", "dr.", "prof.", "sr.", "jr.",
     "ph.d.", "u.s.", "u.k.", "a.m.", "p.m.",
+    # 需要的话再加：
+    "eg.", "ie.", "etc",  # 有人会少打一两个点
 ]
+
 # 中文下也可能混用英文缩写，这里大小写都忽略
 
 
@@ -943,6 +946,20 @@ class FocusCat(QtWidgets.QMainWindow):
                 if paren > 0:
                     i += 1
                     continue
+
+                # 追加：数字小数 3.14 这种不结句
+                if ch == "." and i > 0 and i + 1 < N and text[i - 1].isdigit() and text[i + 1].isdigit():
+                    i += 1
+                    continue
+
+                # 追加：简易网址/邮箱片段中的点不结句（很宽松的启发式）
+                if ch == ".":
+                    # 取点两侧少量字符看是否像域名/邮箱
+                    left = text[max(0, i - 15):i]
+                    right = text[i + 1:min(N, i + 16)]
+                    if re.search(r"[A-Za-z0-9_-]$", left) and re.search(r"^[A-Za-z0-9_-]", right):
+                        i += 1
+                        continue
 
                 # ① 先把连续的句末符吃成一簇（例如 ……、??!!）
                 j = i + 1
