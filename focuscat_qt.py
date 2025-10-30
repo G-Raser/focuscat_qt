@@ -1,6 +1,6 @@
 # focuscat_qt.py — FocusCat (Qt version) with sentence coloring, fixed theming, background image
 from PySide6 import QtCore, QtGui, QtWidgets
-import os, random, re, hashlib, colorsys
+import os, random, re, hashlib, colorsys, math
 
 DEFAULT_SAVE     = "autosave.txt"
 POMODORO_MIN     = 25
@@ -79,6 +79,118 @@ class BgCentralWidget(QtWidgets.QWidget):
         p.end()
         super().paintEvent(e)
 
+class ShadedTextEdit(QtWidgets.QTextEdit):
+    """
+    自动在“可见且有文字”的区域下方绘制半透明黑底，
+    不覆盖没有文字的上下边缘和左右外侧留白。
+    """
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setAcceptRichText(False)
+        # 建议开启按窗口宽度换行，底板才会贴合段落列宽
+        self.setLineWrapMode(QtWidgets.QTextEdit.LineWrapMode.WidgetWidth)
+        # 可调参数
+        self.overlay_enabled = True
+        self.overlay_margin_v = 8      # 底板上下外边距
+        self.overlay_margin_h = -10     # 底板左右外边距（相对viewport边缘）
+        self.overlay_radius   = 5     # 圆角
+        self.overlay_alpha    = 170    # 0~255，越大越黑
+
+    def _visible_text_union_rect_doccoords(self):
+        """返回文档坐标系下，可见且非空文本块的联合矩形（无则返回None）"""
+        doc = self.document()
+        layout = doc.documentLayout()
+        if layout is None:
+            return None
+
+        # 可见范围（文档坐标系）
+        y0 = self.verticalScrollBar().value()
+        y1 = y0 + self.viewport().height()
+
+        first = True
+        union = QtCore.QRectF()
+        block = doc.begin()
+        while block.isValid():
+            if block.length() > 1:  # 有字符（含换行），再判空白
+                text = block.text().strip()
+                if text:
+                    br = layout.blockBoundingRect(block)  # 文档坐标
+                    if br.bottom() >= y0 and br.top() <= y1:
+                        # 参与可见范围的非空块
+                        if first:
+                            union = br
+                            first = False
+                        else:
+                            union = union.united(br)
+            block = block.next()
+
+        return None if first else union
+
+    # def paintEvent(self, event: QtGui.QPaintEvent) -> None:
+    #     # 在绘制文字之前先画底板（Base 设为透明即可不被清掉）
+    #     if self.overlay_enabled:
+    #         union_doc = self._visible_text_union_rect_doccoords()
+    #         if union_doc is not None:
+    #             # 文档坐标 -> 视口坐标（减去滚动条偏移）
+    #             x_off = self.horizontalScrollBar().value()
+    #             y_off = self.verticalScrollBar().value()
+    #             r = QtCore.QRectF(
+    #                 union_doc.left()  - x_off,
+    #                 union_doc.top()   - y_off,
+    #                 union_doc.width(),
+    #                 union_doc.height()
+    #             )
+    #
+    #             # 只占据中间“文字列”的区域：左右各留出一些边距
+    #             r = r.adjusted(self.overlay_margin_h,
+    #                            -self.overlay_margin_v,
+    #                            -self.overlay_margin_h,
+    #                            self.overlay_margin_v)
+    #
+    #             # 与 viewport 取交集，避免溢出
+    #             r = r.intersected(QtCore.QRectF(self.viewport().rect()))
+    #
+    #             if r.isValid() and r.width() > 4 and r.height() > 4:
+    #                 p = QtGui.QPainter(self.viewport())
+    #                 color = QtGui.QColor(0, 0, 0, self.overlay_alpha)  # 半透明黑
+    #                 path = QtGui.QPainterPath()
+    #                 path.addRoundedRect(r, self.overlay_radius, self.overlay_radius)
+    #                 p.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing, True)
+    #                 p.fillPath(path, color)
+    #
+    #     # 再绘制文本（在底板之上）
+    #     super().paintEvent(event)
+
+    def paintEvent(self, event: QtGui.QPaintEvent) -> None:
+        # 在绘制文字之前画固定矩形底板
+        if self.overlay_enabled:
+            p = QtGui.QPainter(self.viewport())
+            color = QtGui.QColor(0, 0, 0, self.overlay_alpha)
+            p.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing, True)
+            path = QtGui.QPainterPath()
+
+            # —— 可调参数 ——
+            width_ratio = 1  # 矩形宽度占编辑区的比例（0~1）
+            height_ratio = 1  # 矩形高度占编辑区的比例（0~1）
+            radius = self.overlay_radius
+
+            vw = self.viewport().width()
+            vh = self.viewport().height()
+            rw = vw * width_ratio
+            rh = vh * height_ratio
+
+            x = (vw - rw) / 2
+            y = (vh - rh) / 2
+
+            rect = QtCore.QRectF(x, y, rw, rh)
+            path.addRoundedRect(rect, radius, radius)
+            p.fillPath(path, color)
+            p.end()
+
+        # 再绘制文字
+        super().paintEvent(event)
+
+
 class FocusCat(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
@@ -115,10 +227,16 @@ class FocusCat(QtWidgets.QMainWindow):
         top_layout.addStretch(1); top_layout.addWidget(self.btn_save)
 
         # 编辑器（透明）
-        self.editor = QtWidgets.QTextEdit(self.central)
-        self.editor.setAcceptRichText(False)
+        # self.editor = QtWidgets.QTextEdit(self.central)
+        # self.editor.setAcceptRichText(False)
+        # self.editor.setFont(QtGui.QFont("Consolas", 14))
+        # self.editor.textChanged.connect(self._update_word_status)
+
+        self.editor = ShadedTextEdit(self.central)
         self.editor.setFont(QtGui.QFont("Consolas", 14))
-        self.editor.textChanged.connect(self._update_word_status)
+        # 保持主题样式：确保 Base/背景透明，文字颜色走主题
+        # 例如在 _apply_theme 里已有：
+        # QTextEdit { background: transparent; border: none; color: <fg>; }
 
         # 布局
         lay = QtWidgets.QVBoxLayout(self.central)
