@@ -197,6 +197,9 @@ class FocusCat(QtWidgets.QMainWindow):
         self.meow_count = 0  # 计数
         self.meow_volume = 0.25  # ★ 默认音量(0~1)
         self.meow_effects: list[QSoundEffect] = []
+        self.surprise_effects: list[QSoundEffect] = []  # ★ 新增：惊喜音效池
+        # self.surprise_prob = 0.01  # ★ 新增：默认 1% 概率
+        self.surprise_prob = 0.1  # Presentation
         self._load_meow_sounds()  # 预加载音效
 
         # 顶栏
@@ -416,6 +419,8 @@ class FocusCat(QtWidgets.QMainWindow):
             lbl_vol.setText(f"Volume: {v}%")
             # 即时作用于已加载的音效
             for eff in self.meow_effects:
+                eff.setVolume(self.meow_volume)
+            for eff in self.surprise_effects:
                 eff.setVolume(self.meow_volume)
             self.status.showMessage(f"Meow volume = {v}%", 1200)
 
@@ -865,51 +870,89 @@ class FocusCat(QtWidgets.QMainWindow):
         self._set_quote(self._random_quote())
         self._schedule_quote_rotation()
 
+    # def _on_meow_clicked(self):
+    #     """点击 Meow：计数 + 随机播放猫叫（若开启）"""
+    #     # 计数
+    #     self.meow_count += 1
+    #     self.lbl_meow_count.setText(str(self.meow_count))
+    #     self._save_meow_count()  # ★ 新增：实时持久化
+    #
+    #     # 声音关闭则不播
+    #     if not self.sound_enabled:
+    #         return
+    #
+    #     # 无音效资源则提示一次
+    #     if not self.meow_effects:
+    #         self.status.showMessage("No meow sounds found in assets/sounds", 2000)
+    #         return
+    #
+    #     # 随机选择并播放
+    #     eff = random.choice(self.meow_effects)
+    #     eff.setLoopCount(1)
+    #     eff.play()
+
     def _on_meow_clicked(self):
-        """点击 Meow：计数 + 随机播放猫叫（若开启）"""
-        # 计数
+        """点击 Meow：计数 + 随机播放（极小概率播放惊喜音乐）"""
+        # 计数与持久化
         self.meow_count += 1
         self.lbl_meow_count.setText(str(self.meow_count))
-        self._save_meow_count()  # ★ 新增：实时持久化
+        self._save_meow_count()
 
-        # 声音关闭则不播
         if not self.sound_enabled:
             return
 
-        # 无音效资源则提示一次
-        if not self.meow_effects:
-            self.status.showMessage("No meow sounds found in assets/sounds", 2000)
+        # 两类音效池都空，直接提示
+        if not self.meow_effects and not self.surprise_effects:
+            self.status.showMessage("No sounds found in assets/sounds", 2000)
             return
 
-        # 随机选择并播放
-        eff = random.choice(self.meow_effects)
+        # 是否触发惊喜（默认 1%）
+        use_surprise = bool(self.surprise_effects) and (random.random() < self.surprise_prob)
+        pool = self.surprise_effects if use_surprise else self.meow_effects
+
+        eff = random.choice(pool)
         eff.setLoopCount(1)
+        eff.setVolume(self.meow_volume)  # 保底再设一次
         eff.play()
+
+        if use_surprise:
+            # 给个小提示，不打断专注
+            self.status.showMessage("🎉 Surprise meow!", 1500)
+
 
     def _load_meow_sounds(self):
         """
         预加载 ./assets/sounds 下的 .wav 音效到 QSoundEffect。
-        推荐使用 WAV（Qt 更稳定）。如需批量转换，可先用 ffmpeg 转好再放入此目录。
+        - 常规猫叫：文件名不限
+        - 惊喜音乐：文件名以 surprise/rare/easter 开头
         """
         base_dir = os.path.dirname(os.path.abspath(__file__))
         sounds_dir = os.path.join(base_dir, "assets", "sounds")
 
         self.meow_effects.clear()
+        self.surprise_effects.clear()
 
         if not os.path.isdir(sounds_dir):
-            # 若没有该目录，不报错；你把声音文件放进去即可
             return
+
+        def _make_eff(path: str) -> QSoundEffect:
+            eff = QSoundEffect(self)
+            eff.setSource(QtCore.QUrl.fromLocalFile(path))
+            eff.setVolume(self.meow_volume)
+            _ = eff.source()  # 触发底层准备，减少首次播放延迟
+            return eff
 
         for name in os.listdir(sounds_dir):
             if not name.lower().endswith(".wav"):
                 continue
             path = os.path.join(sounds_dir, name)
-            eff = QSoundEffect(self)
-            eff.setSource(QtCore.QUrl.fromLocalFile(path))
-            eff.setVolume(self.meow_volume)
-            # 懒加载：通过访问一次 source() 触发底层准备，减少首次播放延迟
-            _ = eff.source()
-            self.meow_effects.append(eff)
+            low = name.lower()
+            eff = _make_eff(path)
+
+            if low.startswith(("surprise", "rare", "easter")):
+                self.surprise_effects.append(eff)
+            else:
+                self.meow_effects.append(eff)
 
     def _state_dir(self) -> str:
         """返回存放持久化小文件的目录（自动创建）。"""
