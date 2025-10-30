@@ -181,7 +181,7 @@ class FocusCat(QtWidgets.QMainWindow):
         self.theme_key = "dark"
         self.time_left = POMODORO_MIN * 60
         self.running   = False
-        self.quote_lang = "zh"
+        self.quote_lang = "en"
         self._quote_timer = QtCore.QTimer(self)
         self._quote_timer.setSingleShot(True)
         self._quote_timer.timeout.connect(self._rotate_quote)
@@ -216,9 +216,40 @@ class FocusCat(QtWidgets.QMainWindow):
         self.lbl_quote = QtWidgets.QLabel("喵～准备开始写作了吗？", top)
 
         # --- 新增：Meow 按钮 + 计数 ---
-        self.btn_meow = QtWidgets.QPushButton("Meow", top)
-        self.btn_meow.setToolTip("Play a random meow sound")
-        self.btn_meow.clicked.connect(self._on_meow_clicked)
+        # self.btn_meow = QtWidgets.QPushButton("Meow", top)
+        # self.btn_meow.setToolTip("Play a random meow sound")
+        # self.btn_meow.clicked.connect(self._on_meow_clicked)
+
+        # 路径基准（如果你已有 self.asset_dir，可复用它）
+        self.asset_dir = os.path.join(os.path.dirname(__file__), "assets")
+
+        # 预载两张猫头图（透明底）
+        self.cat_img_normal = QtGui.QPixmap(os.path.join(self.asset_dir, "images", "cat_normal.png"))
+        self.cat_img_pressed = QtGui.QPixmap(os.path.join(self.asset_dir, "images", "cat_meow.png"))
+
+        # 透明背景图片按钮
+        self.btn_meow = QtWidgets.QPushButton("", top)
+        self.btn_meow.setFlat(True)
+        self.btn_meow.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
+        self.btn_meow.setStyleSheet(
+            "QPushButton{background:transparent;border:none;}"
+            "QPushButton:pressed{padding-left:1px;padding-top:1px;}"  # 轻微按压感
+        )
+
+        # 默认显示普通表情；缺图时优雅降级为文本按钮
+        if not self.cat_img_normal.isNull():
+            self.btn_meow.setIcon(QtGui.QIcon(self.cat_img_normal))
+            self.btn_meow.setIconSize(QtCore.QSize(50, 50))  # 想更大就改
+            self.btn_meow.setFixedSize(54, 54)
+        else:
+            self.btn_meow.setText("Meow")
+            self.btn_meow.setFixedSize(84, 32)
+
+        # 用 pressed/released 实现“按下换图、松开恢复”
+        self.btn_meow.pressed.connect(self._on_meow_pressed)
+        self.btn_meow.released.connect(self._on_meow_released)
+
+        top_layout.addWidget(self.btn_meow)
 
         self.lbl_meow_count = QtWidgets.QLabel("0", top)
         self._load_meow_count()  # ★ 读取历史总点击数并展示
@@ -294,6 +325,26 @@ class FocusCat(QtWidgets.QMainWindow):
             except Exception as e:
                 print(f"无法加载默认背景: {e}")
 
+    def _on_meow_pressed(self):
+        """按下：换成喵叫表情 + 计数 + 播放声音（沿用你现有的 _on_meow_clicked 逻辑）"""
+        try:
+            if hasattr(self, "cat_img_pressed") and not self.cat_img_pressed.isNull():
+                self.btn_meow.setIcon(QtGui.QIcon(self.cat_img_pressed))
+        except Exception:
+            pass
+
+        # 计数+保存+播放声音：沿用你已有的实现
+        # 注意：_on_meow_clicked 内部不需要再改图标，以免重复
+        self._on_meow_clicked()
+
+    def _on_meow_released(self):
+        """松开：恢复普通表情"""
+        try:
+            if hasattr(self, "cat_img_normal") and not self.cat_img_normal.isNull():
+                self.btn_meow.setIcon(QtGui.QIcon(self.cat_img_normal))
+        except Exception:
+            pass
+
     # ---------- 菜单 ----------
     def _build_menus(self):
         bar = self.menuBar()
@@ -305,7 +356,7 @@ class FocusCat(QtWidgets.QMainWindow):
         act_saveas = m_file.addAction("Save As..."); act_saveas.triggered.connect(lambda: self.save_file(True))
         m_file.addSeparator(); m_file.addAction("Exit", self.close)
 
-        m_view = bar.addMenu("View")
+        m_view = bar.addMenu("Setting")
         m_theme = m_view.addMenu("Theme")
         m_theme.addAction("Dark",    lambda: self._apply_theme("dark"))
         m_theme.addAction("Light",   lambda: self._apply_theme("light"))
@@ -475,8 +526,11 @@ class FocusCat(QtWidgets.QMainWindow):
                 background: rgba(255,255,255,0.15);
             }}
             QPushButton, QLabel {{
-                color: {conf['fg']};
+            color: {conf['fg']};
+            font-size: 15px;     /* 默认大约是 11px，可以改成 14~16 看效果 */
+            font-weight: 500;    /* 可选：让字体稍微粗一点 */
             }}
+
             QTextEdit {{
                 background: transparent;
                 border: none;
@@ -496,7 +550,7 @@ class FocusCat(QtWidgets.QMainWindow):
         if self._confirm_discard():
             self.editor.clear()
             self.current_file = DEFAULT_SAVE
-            self.setWindowTitle("FocusCat 🐱 - Untitled")
+            self.setWindowTitle("FocusCat - Untitled")
             self._update_word_status()
             self._last_colored_pos = 0
 
@@ -507,7 +561,7 @@ class FocusCat(QtWidgets.QMainWindow):
             with open(path, "r", encoding="utf-8") as f:
                 self.editor.setPlainText(f.read())
             self.current_file = path
-            self.setWindowTitle(f"FocusCat 🐱 - {os.path.basename(path)}")
+            self.setWindowTitle(f"FocusCat - {os.path.basename(path)}")
             self._update_word_status()
             self._last_colored_pos = 0
             self._colorize_all_sentences_once()
@@ -520,7 +574,7 @@ class FocusCat(QtWidgets.QMainWindow):
             path, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save As", "", "Text (*.txt);;All files (*)")
             if not path: return
             self.current_file = path
-            self.setWindowTitle(f"FocusCat 🐱 - {os.path.basename(path)}")
+            self.setWindowTitle(f"FocusCat - {os.path.basename(path)}")
         try:
             with open(path, "w", encoding="utf-8") as f:
                 f.write(self.editor.toPlainText())
@@ -533,7 +587,7 @@ class FocusCat(QtWidgets.QMainWindow):
             try:
                 with open(path, "r", encoding="utf-8") as f:
                     self.editor.setPlainText(f.read())
-                self.setWindowTitle(f"FocusCat 🐱 - {os.path.basename(path)}")
+                self.setWindowTitle(f"FocusCat - {os.path.basename(path)}")
                 self._update_word_status()
             except Exception:
                 pass
@@ -919,12 +973,12 @@ class FocusCat(QtWidgets.QMainWindow):
 
     def _render_timer(self):
         self.lbl_timer.setText(self._fmt_time())
-        self.setWindowTitle(f"FocusCat 🐱 — {self._fmt_time()}")
+        self.setWindowTitle(f"FocusCat — {self._fmt_time()}")
 
     # ---------- 心跳：标题刷新 + 新句子着色 ----------
     def _heartbeat_tick(self):
         if self.running:
-            self.setWindowTitle(f"FocusCat 🐱 — {self._fmt_time()}")
+            self.setWindowTitle(f"FocusCat — {self._fmt_time()}")
         # 扫描是否出现了新的句末符，如果有就给新句子上色
         self._scan_and_color_new_sentences()
 
