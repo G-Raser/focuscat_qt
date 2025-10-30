@@ -189,6 +189,11 @@ class FocusCat(QtWidgets.QMainWindow):
         self.central = BgCentralWidget(self)
         self.setCentralWidget(self.central)
 
+        self.sound_enabled = True  # 菜单可关闭
+        self.meow_count = 0  # 计数
+        self.meow_effects: list[QSoundEffect] = []
+        self._load_meow_sounds()  # 预加载音效（见下面方法）
+
         # 顶栏
         top = QtWidgets.QWidget(self.central); top.setObjectName("topbar")
         top_layout = QtWidgets.QHBoxLayout(top); top_layout.setContentsMargins(10,6,10,6)
@@ -196,11 +201,39 @@ class FocusCat(QtWidgets.QMainWindow):
         self.btn_start = QtWidgets.QPushButton("▶ Start", top); self.btn_start.clicked.connect(self.start_timer)
         self.btn_pause = QtWidgets.QPushButton("⏸ Pause", top); self.btn_pause.clicked.connect(self.pause_timer)
         self.btn_reset = QtWidgets.QPushButton("↺ Reset", top); self.btn_reset.clicked.connect(self.reset_timer)
+
+        # self.lbl_quote = QtWidgets.QLabel("喵～准备开始写作了吗？", top)
+        # self.btn_save  = QtWidgets.QPushButton("💾 Save", top); self.btn_save.clicked.connect(lambda: self.save_file(False))
+        # for w in (self.lbl_timer, self.btn_start, self.btn_pause, self.btn_reset, self.lbl_quote):
+        #     top_layout.addWidget(w)
+        # top_layout.addStretch(1); top_layout.addWidget(self.btn_save)
+
         self.lbl_quote = QtWidgets.QLabel("喵～准备开始写作了吗？", top)
-        self.btn_save  = QtWidgets.QPushButton("💾 Save", top); self.btn_save.clicked.connect(lambda: self.save_file(False))
+
+        # --- 新增：Meow 按钮 + 计数 ---
+        self.btn_meow = QtWidgets.QPushButton("Meow", top)
+        self.btn_meow.setToolTip("Play a random meow sound")
+        self.btn_meow.clicked.connect(self._on_meow_clicked)
+
+        self.lbl_meow_count = QtWidgets.QLabel("0", top)
+        self.lbl_meow_count.setMinimumWidth(24)
+        self.lbl_meow_count.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight | QtCore.Qt.AlignmentFlag.AlignVCenter)
+        self.lbl_meow_count.setToolTip("Meow click count")
+
+        self.btn_save = QtWidgets.QPushButton("💾 Save", top)
+        self.btn_save.clicked.connect(lambda: self.save_file(False))
+
         for w in (self.lbl_timer, self.btn_start, self.btn_pause, self.btn_reset, self.lbl_quote):
             top_layout.addWidget(w)
-        top_layout.addStretch(1); top_layout.addWidget(self.btn_save)
+
+        # Save 左边插入 Meow 和计数器
+        top_layout.addStretch(1)
+        top_layout.addWidget(self.btn_meow)
+        top_layout.addWidget(self.lbl_meow_count)
+        top_layout.addWidget(self.btn_save)
+
+        # 与菜单开关同步初始可用态
+        self.btn_meow.setEnabled(self.sound_enabled)
 
         # 编辑器（透明）
         # self.editor = QtWidgets.QTextEdit(self.central)
@@ -281,6 +314,22 @@ class FocusCat(QtWidgets.QMainWindow):
         # ===== Overlay（黑底） =====
         m_overlay = m_view.addMenu("Overlay")
 
+        # ===== Sound（声音） =====
+        m_sound = m_view.addMenu("Sound")
+
+        act_enable_sound = QtGui.QAction("Enable Meow Sounds", self)
+        act_enable_sound.setCheckable(True)
+        act_enable_sound.setChecked(self.sound_enabled)
+
+        def _toggle_sound(checked: bool):
+            self.sound_enabled = bool(checked)
+            # 灰掉按钮更直观
+            self.btn_meow.setEnabled(self.sound_enabled)
+            self.status.showMessage("Meow sounds: ON" if checked else "Meow sounds: OFF", 1200)
+
+        act_enable_sound.toggled.connect(_toggle_sound)
+        m_sound.addAction(act_enable_sound)
+
         # 2.1 开关
         act_toggle = QtGui.QAction("Show Background Shade", self)
         act_toggle.setCheckable(True)
@@ -321,41 +370,6 @@ class FocusCat(QtWidgets.QMainWindow):
         m_focus.addSeparator()
         m_focus.addAction("Recolor ALL Now", self._colorize_all_sentences_once)
 
-    # # ---------- 主题 ----------
-    # def _apply_theme(self, key: str):
-    #     self.theme_key = key
-    #     conf = THEMES[key]
-    #     pal = self.palette()
-    #     pal.setColor(QtGui.QPalette.ColorRole.Window,     QtGui.QColor(conf["bg"]))
-    #     pal.setColor(QtGui.QPalette.ColorRole.WindowText, QtGui.QColor(conf["fg"]))
-    #     pal.setColor(QtGui.QPalette.ColorRole.Base,       QtGui.QColor(0,0,0,0))  # 透明
-    #     pal.setColor(QtGui.QPalette.ColorRole.Text,       QtGui.QColor(conf["fg"]))
-    #     pal.setColor(QtGui.QPalette.ColorRole.Highlight,  QtGui.QColor(conf["fg"]))
-    #     pal.setColor(QtGui.QPalette.ColorRole.HighlightedText, QtGui.QColor(conf["bg"]))
-    #     self.setPalette(pal)
-    #     self.central.setAutoFillBackground(True)
-    #
-    #     # 顶栏 & 编辑器默认文字颜色（未着色部分）
-    #     self.central.setStyleSheet(f"""
-    #         QWidget#topbar {{
-    #             background: {conf['bar']};
-    #             color: {conf['fg']};
-    #         }}
-    #         QLabel, QPushButton {{
-    #             color: {conf['fg']};
-    #         }}
-    #         QMenuBar, QMenu {{
-    #             background: {conf['bg']};
-    #             color: {conf['fg']};
-    #         }}
-    #         QMenu::item:selected {{ background: rgba(255,255,255,0.12); }}
-    #         QTextEdit {{
-    #             background: transparent;
-    #             border: none;
-    #             color: {conf['fg']};
-    #         }}
-    #     """)
-    #     self.central.update()
 
     def _apply_theme(self, key: str):
         self.theme_key = key
@@ -751,6 +765,51 @@ class FocusCat(QtWidgets.QMainWindow):
     def _rotate_quote(self):
         self._set_quote(self._random_quote())
         self._schedule_quote_rotation()
+
+    def _on_meow_clicked(self):
+        """点击 Meow：计数 + 随机播放猫叫（若开启）"""
+        # 计数
+        self.meow_count += 1
+        self.lbl_meow_count.setText(str(self.meow_count))
+
+        # 声音关闭则不播
+        if not self.sound_enabled:
+            return
+
+        # 无音效资源则提示一次
+        if not self.meow_effects:
+            self.status.showMessage("No meow sounds found in assets/sounds", 2000)
+            return
+
+        # 随机选择并播放
+        eff = random.choice(self.meow_effects)
+        eff.setLoopCount(1)
+        eff.play()
+
+    def _load_meow_sounds(self):
+        """
+        预加载 ./assets/sounds 下的 .wav 音效到 QSoundEffect。
+        推荐使用 WAV（Qt 更稳定）。如需批量转换，可先用 ffmpeg 转好再放入此目录。
+        """
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        sounds_dir = os.path.join(base_dir, "assets", "sounds")
+
+        self.meow_effects.clear()
+
+        if not os.path.isdir(sounds_dir):
+            # 若没有该目录，不报错；你把声音文件放进去即可
+            return
+
+        for name in os.listdir(sounds_dir):
+            if not name.lower().endswith(".wav"):
+                continue
+            path = os.path.join(sounds_dir, name)
+            eff = QSoundEffect(self)
+            eff.setSource(QtCore.QUrl.fromLocalFile(path))
+            eff.setVolume(0.85)  # 0.0~1.0
+            # 懒加载：通过访问一次 source() 触发底层准备，减少首次播放延迟
+            _ = eff.source()
+            self.meow_effects.append(eff)
 
     # ---------- 计时器 ----------
     def _fmt_time(self):
