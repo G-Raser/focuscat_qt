@@ -191,7 +191,6 @@ class FocusCat(QtWidgets.QMainWindow):
 
         self.sound_enabled = True  # 菜单可关闭
         self.meow_count = 0  # 计数
-        self.meow_volume = 0.85  # 0.0~1.0，全局音量（默认 85%）
         self.meow_effects: list[QSoundEffect] = []
         self._load_meow_sounds()  # 预加载音效（见下面方法）
 
@@ -300,7 +299,7 @@ class FocusCat(QtWidgets.QMainWindow):
         act_saveas = m_file.addAction("Save As..."); act_saveas.triggered.connect(lambda: self.save_file(True))
         m_file.addSeparator(); m_file.addAction("Exit", self.close)
 
-        m_view = bar.addMenu("Setting")
+        m_view = bar.addMenu("View")
         m_theme = m_view.addMenu("Theme")
         m_theme.addAction("Dark",    lambda: self._apply_theme("dark"))
         m_theme.addAction("Light",   lambda: self._apply_theme("light"))
@@ -321,35 +320,6 @@ class FocusCat(QtWidgets.QMainWindow):
         act_enable_sound = QtGui.QAction("Enable Meow Sounds", self)
         act_enable_sound.setCheckable(True)
         act_enable_sound.setChecked(self.sound_enabled)
-
-        # --- Volume slider (0~100%) ---
-        vol_action = QtWidgets.QWidgetAction(self)
-        vol_widget = QtWidgets.QWidget(self)
-        vol_layout = QtWidgets.QVBoxLayout(vol_widget)
-        vol_layout.setContentsMargins(8, 6, 8, 6)
-
-        vol_label = QtWidgets.QLabel(f"Volume: {int(self.meow_volume * 100)}%", vol_widget)
-        vol_slider = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal, vol_widget)
-        vol_slider.setRange(0, 100)
-        vol_slider.setSingleStep(1)
-        vol_slider.setPageStep(5)
-        vol_slider.setValue(int(self.meow_volume * 100))
-
-        def _on_volume_changed(val: int):
-            self.meow_volume = max(0, min(100, int(val))) / 100.0
-            self._apply_meow_volume()
-            vol_label.setText(f"Volume: {val}%")
-            # 状态栏可选提示
-            try:
-                self.statusBar().showMessage(f"Meow volume = {val}%", 1200)
-            except Exception:
-                pass
-
-        vol_slider.valueChanged.connect(_on_volume_changed)
-        vol_layout.addWidget(vol_label)
-        vol_layout.addWidget(vol_slider)
-        vol_action.setDefaultWidget(vol_widget)
-        m_sound.addAction(vol_action)
 
         def _toggle_sound(checked: bool):
             self.sound_enabled = bool(checked)
@@ -816,12 +786,6 @@ class FocusCat(QtWidgets.QMainWindow):
         eff.setLoopCount(1)
         eff.play()
 
-    def _apply_meow_volume(self):
-        """把全局音量应用到所有已加载的 QSoundEffect"""
-        v = max(0.0, min(1.0, float(self.meow_volume)))
-        for eff in self.meow_effects:
-            eff.setVolume(v)
-
     def _load_meow_sounds(self):
         """
         预加载 ./assets/sounds 下的 .wav 音效到 QSoundEffect。
@@ -846,7 +810,6 @@ class FocusCat(QtWidgets.QMainWindow):
             # 懒加载：通过访问一次 source() 触发底层准备，减少首次播放延迟
             _ = eff.source()
             self.meow_effects.append(eff)
-            self._apply_meow_volume()
 
     # ---------- 计时器 ----------
     def _fmt_time(self):
