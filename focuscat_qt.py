@@ -152,6 +152,15 @@ class FocusCat(QtWidgets.QMainWindow):
         # 启动喵喵话轮换
         self._schedule_quote_rotation(immediate=True)
 
+        # ---- 默认背景图 ----
+        default_bg = os.path.join(os.path.dirname(__file__), "assets", "images", "bg_default.jpg")
+        if os.path.exists(default_bg):
+            try:
+                self.central.set_background_image(default_bg)
+                self.status.showMessage("默认背景已加载", 3000)
+            except Exception as e:
+                print(f"无法加载默认背景: {e}")
+
     # ---------- 菜单 ----------
     def _build_menus(self):
         bar = self.menuBar()
