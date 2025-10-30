@@ -627,6 +627,7 @@ class FocusCat(QtWidgets.QMainWindow):
         seed = int(hashlib.md5(clean.encode("utf-8")).hexdigest(), 16)
         base = PALETTE[seed % len(PALETTE)]
         grad = self._stable_gradient(base, end_pos - start_pos, seed)
+        # grad = self._bright_gradient(end_pos - start_pos, seed)
 
         # 逐字符上色
         cur = self.editor.textCursor()
