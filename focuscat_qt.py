@@ -20,15 +20,15 @@ PALETTE = ["#FF6B6B","#FFD93D","#6BCB77","#4D96FF","#FF9CEE",
            "#A3E4DB","#FFB26B","#B983FF","#FFC7C7","#7DE5ED"]
 
 QUOTES_ZH = [
-    "喵～好棒，继续写！","(*´∀`)♡ 再来一句！","你今天状态很好喵！",
-    "伸个懒腰，然后继续～","FocusCat 为你守护专注 ✨",
-    "喝口水，眼睛休息十秒喵～","先写不完美，也很棒喵！"
+    "(｡･∀･)ﾉﾞ 喵～好棒，继续写！","(*´∀`)♡ 再来一句！","(⁎˃ᴗ˂⁎) 你今天状态很好喵！",
+    "(ฅ'ω'ฅ)♪ 伸个懒腰，然后继续～","(●´ω｀●) FocusCat 为你守护专注 ✨",
+    "(⁎˃ᴗ˂⁎) 喝口水，眼睛休息十秒喵～","(=^･ω･^=) 先写不完美，也很棒喵！"
 ]
 QUOTES_EN = [
-    "Meow~ you're doing great!","One more line, you got this!",
-    "Looking sharp today, human 🐾","Stretch a bit and keep going!",
-    "FocusCat is guarding your focus ✨","Sip some water and relax your eyes.",
-    "It's okay to write imperfectly first!"
+    "(｡･∀･)ﾉﾞ Meow~ you're doing great!","(*´∀`)♡ One more line, you got this!",
+    "(⁎˃ᴗ˂⁎) Looking sharp today, human!","(ฅ'ω'ฅ)♪ Stretch a bit and keep going!",
+    "(●´ω｀●) FocusCat is guarding your focus ✨","(⁎˃ᴗ˂⁎) Sip some water and relax your eyes!",
+    "(=^･ω･^=) It's okay to write imperfectly first!"
 ]
 
 # 常见缩写（末尾带点的）——用于避免把缩写当句末
@@ -239,6 +239,17 @@ class FocusCat(QtWidgets.QMainWindow):
             "QPushButton:pressed{padding-left:1px;padding-top:1px;}"  # 轻微按压感
         )
 
+        # —— 事件过滤器 + 状态/定时器 ——
+        self.btn_meow.installEventFilter(self)
+
+        self._meow_pressed = False
+        self._meow_press_time = 0.0
+        self._meow_min_show_ms = 140  # 图标按下至少显示这么久，避免太快看不见
+
+        self._meow_revert_timer = QtCore.QTimer(self)
+        self._meow_revert_timer.setSingleShot(True)
+        self._meow_revert_timer.timeout.connect(self._revert_meow_icon)
+
         # 默认显示普通表情；缺图时优雅降级为文本按钮
         if not self.cat_img_normal.isNull():
             self.btn_meow.setIcon(QtGui.QIcon(self.cat_img_normal))
@@ -249,10 +260,10 @@ class FocusCat(QtWidgets.QMainWindow):
             self.btn_meow.setFixedSize(84, 32)
 
         # 用 pressed/released 实现“按下换图、松开恢复”
-        self.btn_meow.pressed.connect(self._on_meow_pressed)
-        self.btn_meow.released.connect(self._on_meow_released)
+        # self.btn_meow.pressed.connect(self._on_meow_pressed)
+        # self.btn_meow.released.connect(self._on_meow_released)
 
-        top_layout.addWidget(self.btn_meow)
+        # top_layout.addWidget(self.btn_meow)
 
         self.lbl_meow_count = QtWidgets.QLabel("0", top)
         self._load_meow_count()  # ★ 读取历史总点击数并展示
@@ -328,6 +339,52 @@ class FocusCat(QtWidgets.QMainWindow):
             except Exception as e:
                 print(f"无法加载默认背景: {e}")
 
+    def eventFilter(self, obj, ev):
+        if obj is self.btn_meow:
+            t = ev.type()
+            if t == QtCore.QEvent.Type.MouseButtonPress:
+                # 立刻换图，抓鼠标，记录时间
+                self._meow_revert_timer.stop()
+                self._set_pressed_icon()
+                self.btn_meow.grabMouse()
+                self._meow_pressed = True
+                self._meow_press_time = QtCore.QTime.currentTime().msecsSinceStartOfDay()
+
+                # 计数 + 声音（沿用你已有的逻辑）
+                self._on_meow_clicked()
+                return True  # 已处理
+
+            elif t == QtCore.QEvent.Type.MouseButtonRelease:
+                # 无论释放是否在按钮内，都能收到，因为我们 grabMouse 了
+                self.btn_meow.releaseMouse()
+
+                # 保证最短显示时长
+                now = QtCore.QTime.currentTime().msecsSinceStartOfDay()
+                elapsed = now - self._meow_press_time
+                remain = max(0, self._meow_min_show_ms - elapsed)
+
+                self._meow_revert_timer.stop()
+                if remain == 0:
+                    self._revert_meow_icon()
+                else:
+                    self._meow_revert_timer.start(remain)
+                return True
+
+            elif t == QtCore.QEvent.Type.Leave:
+                # 光标滑出按钮也兜底；如果仍处于按下态，按最短时长来
+                if self._meow_pressed:
+                    now = QtCore.QTime.currentTime().msecsSinceStartOfDay()
+                    elapsed = now - self._meow_press_time
+                    remain = max(0, self._meow_min_show_ms - elapsed)
+                    self._meow_revert_timer.stop()
+                    if remain == 0:
+                        self._revert_meow_icon()
+                    else:
+                        self._meow_revert_timer.start(remain)
+                return False  # 不拦截其它处理
+
+        return super().eventFilter(obj, ev)
+
     def _on_meow_pressed(self):
         """按下：换成喵叫表情 + 计数 + 播放声音（沿用你现有的 _on_meow_clicked 逻辑）"""
         try:
@@ -347,6 +404,15 @@ class FocusCat(QtWidgets.QMainWindow):
                 self.btn_meow.setIcon(QtGui.QIcon(self.cat_img_normal))
         except Exception:
             pass
+
+    def _set_pressed_icon(self):
+        if hasattr(self, "cat_img_pressed") and not self.cat_img_pressed.isNull():
+            self.btn_meow.setIcon(QtGui.QIcon(self.cat_img_pressed))
+
+    def _revert_meow_icon(self):
+        if hasattr(self, "cat_img_normal") and not self.cat_img_normal.isNull():
+            self.btn_meow.setIcon(QtGui.QIcon(self.cat_img_normal))
+        self._meow_pressed = False
 
     # ---------- 菜单 ----------
     def _build_menus(self):
