@@ -2,6 +2,8 @@
 from PySide6 import QtCore, QtGui, QtWidgets
 import os, random, re, hashlib, colorsys
 from PySide6.QtMultimedia import QSoundEffect
+import json, tempfile
+
 
 DEFAULT_SAVE     = "autosave.txt"
 POMODORO_MIN     = 25
@@ -25,7 +27,7 @@ QUOTES_ZH = [
     "喝口水，眼睛休息十秒喵～","先写不完美，也很棒喵！"
 ]
 QUOTES_EN = [
-    "Meow~ you're doing great!","One more line, you got this!",
+    "Meow~ you're doing great!(*´∀`)♡","One more line, you got this!",
     "Looking sharp today, human 🐾","Stretch a bit and keep going!",
     "FocusCat is guarding your focus ✨","Sip some water and relax your eyes.",
     "It's okay to write imperfectly first!"
@@ -177,7 +179,7 @@ class FocusCat(QtWidgets.QMainWindow):
         self.theme_key = "dark"
         self.time_left = POMODORO_MIN * 60
         self.running   = False
-        self.quote_lang = "zh"
+        self.quote_lang = "en"
         self._quote_timer = QtCore.QTimer(self)
         self._quote_timer.setSingleShot(True)
         self._quote_timer.timeout.connect(self._rotate_quote)
@@ -191,9 +193,15 @@ class FocusCat(QtWidgets.QMainWindow):
 
         self.sound_enabled = True  # 菜单可关闭
         self.meow_count = 0  # 计数
-        self.meow_volume = 0.85  # 0.0~1.0，全局音量（默认 85%）
+        self.meow_volume = 0.35  # 0.0~1.0，全局音量（默认 85%）
         self.meow_effects: list[QSoundEffect] = []
         self._load_meow_sounds()  # 预加载音效（见下面方法）
+        # --- Meow total persistence ---
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        self._state_dir = os.path.join(base_dir, "assets")
+        self._state_path = os.path.join(self._state_dir, "focuscat_state.json")
+        self.meow_total = 0  # 总点击次数（从文件加载）
+        self._load_meow_total()
 
         # 顶栏
         top = QtWidgets.QWidget(self.central); top.setObjectName("topbar")
@@ -216,7 +224,10 @@ class FocusCat(QtWidgets.QMainWindow):
         self.btn_meow.setToolTip("Play a random meow sound")
         self.btn_meow.clicked.connect(self._on_meow_clicked)
 
-        self.lbl_meow_count = QtWidgets.QLabel("0", top)
+        # self.lbl_meow_count = QtWidgets.QLabel("0", top)
+        self.lbl_meow_count = QtWidgets.QLabel(str(self.meow_total), top)
+        self.lbl_meow_count.setToolTip(f"Total Meow Count: {self.meow_total}")
+
         self.lbl_meow_count.setMinimumWidth(24)
         self.lbl_meow_count.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight | QtCore.Qt.AlignmentFlag.AlignVCenter)
         self.lbl_meow_count.setToolTip("Meow click count")
@@ -316,11 +327,27 @@ class FocusCat(QtWidgets.QMainWindow):
         m_overlay = m_view.addMenu("Overlay")
 
         # ===== Sound（声音） =====
-        m_sound = m_view.addMenu("Sound")
+        m_sound = m_view.addMenu("Meow Clicker")
 
         act_enable_sound = QtGui.QAction("Enable Meow Sounds", self)
         act_enable_sound.setCheckable(True)
         act_enable_sound.setChecked(self.sound_enabled)
+
+        act_reset_total = QtGui.QAction("Reset Meow Total", self)
+
+        def _reset_total():
+            self.meow_total = 0
+            self._save_meow_total()
+            # 🔽 立刻更新界面
+            self.lbl_meow_count.setText("0")
+            self.lbl_meow_count.setToolTip("Total Meow Count: 0")
+            try:
+                self.statusBar().showMessage("Meow total reset to 0", 1500)
+            except Exception:
+                pass
+
+        m_sound.addAction(act_reset_total)
+        act_reset_total.triggered.connect(_reset_total)
 
         # --- Volume slider (0~100%) ---
         vol_action = QtWidgets.QWidgetAction(self)
@@ -797,24 +824,57 @@ class FocusCat(QtWidgets.QMainWindow):
         self._schedule_quote_rotation()
 
     def _on_meow_clicked(self):
-        """点击 Meow：计数 + 随机播放猫叫（若开启）"""
-        # 计数
-        self.meow_count += 1
-        self.lbl_meow_count.setText(str(self.meow_count))
+        """点击 Meow：总计 +1 并保存"""
+        # 从文件读取最新总计
+        self._load_meow_total()
+        self.meow_total += 1
+        self._save_meow_total()
 
-        # 声音关闭则不播
+        # 更新显示
+        self.lbl_meow_count.setText(str(self.meow_total))
+        self.lbl_meow_count.setToolTip(f"Total Meow Count: {self.meow_total}")
+
+        # 播放逻辑保持不变
         if not self.sound_enabled:
             return
-
-        # 无音效资源则提示一次
         if not self.meow_effects:
-            self.status.showMessage("No meow sounds found in assets/sounds", 2000)
+            self.statusBar().showMessage("No meow sounds found in assets/sounds", 2000)
             return
-
-        # 随机选择并播放
         eff = random.choice(self.meow_effects)
         eff.setLoopCount(1)
         eff.play()
+
+    def _load_meow_total(self):
+        """从 assets/focuscat_state.json 读取 meow_total"""
+        try:
+            os.makedirs(self._state_dir, exist_ok=True)
+            if not os.path.exists(self._state_path):
+                # 没有文件就初始化为 0
+                self.meow_total = 0
+                return
+            with open(self._state_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            self.meow_total = int(data.get("meow_total", 0))
+        except Exception as e:
+            print("Load meow_total failed:", e)
+            self.meow_total = 0
+
+    def _save_meow_total(self):
+        """把 meow_total 原子写入 JSON（防止中途崩溃损坏文件）"""
+        try:
+            os.makedirs(self._state_dir, exist_ok=True)
+            tmp_fd, tmp_path = tempfile.mkstemp(prefix="focuscat_", suffix=".json", dir=self._state_dir)
+            os.close(tmp_fd)
+            with open(tmp_path, "w", encoding="utf-8") as f:
+                json.dump({"meow_total": int(self.meow_total)}, f, ensure_ascii=False, indent=2)
+            # 原子替换
+            if os.name == "nt":
+                # Windows 没有 os.replace 的原子保障？Py3 有，仍用 replace
+                os.replace(tmp_path, self._state_path)
+            else:
+                os.replace(tmp_path, self._state_path)
+        except Exception as e:
+            print("Save meow_total failed:", e)
 
     def _apply_meow_volume(self):
         """把全局音量应用到所有已加载的 QSoundEffect"""
@@ -842,7 +902,7 @@ class FocusCat(QtWidgets.QMainWindow):
             path = os.path.join(sounds_dir, name)
             eff = QSoundEffect(self)
             eff.setSource(QtCore.QUrl.fromLocalFile(path))
-            eff.setVolume(0.85)  # 0.0~1.0
+            eff.setVolume(0.35)  # 0.0~1.0
             # 懒加载：通过访问一次 source() 触发底层准备，减少首次播放延迟
             _ = eff.source()
             self.meow_effects.append(eff)
