@@ -1,6 +1,7 @@
 # focuscat_qt.py — FocusCat (Qt version) with sentence coloring, fixed theming, background image
 from PySide6 import QtCore, QtGui, QtWidgets
-import os, random, re, hashlib, colorsys, math
+import os, random, re, hashlib, colorsys
+from PySide6.QtMultimedia import QSoundEffect
 
 DEFAULT_SAVE     = "autosave.txt"
 POMODORO_MIN     = 25
@@ -125,41 +126,6 @@ class ShadedTextEdit(QtWidgets.QTextEdit):
             block = block.next()
 
         return None if first else union
-
-    # def paintEvent(self, event: QtGui.QPaintEvent) -> None:
-    #     # 在绘制文字之前先画底板（Base 设为透明即可不被清掉）
-    #     if self.overlay_enabled:
-    #         union_doc = self._visible_text_union_rect_doccoords()
-    #         if union_doc is not None:
-    #             # 文档坐标 -> 视口坐标（减去滚动条偏移）
-    #             x_off = self.horizontalScrollBar().value()
-    #             y_off = self.verticalScrollBar().value()
-    #             r = QtCore.QRectF(
-    #                 union_doc.left()  - x_off,
-    #                 union_doc.top()   - y_off,
-    #                 union_doc.width(),
-    #                 union_doc.height()
-    #             )
-    #
-    #             # 只占据中间“文字列”的区域：左右各留出一些边距
-    #             r = r.adjusted(self.overlay_margin_h,
-    #                            -self.overlay_margin_v,
-    #                            -self.overlay_margin_h,
-    #                            self.overlay_margin_v)
-    #
-    #             # 与 viewport 取交集，避免溢出
-    #             r = r.intersected(QtCore.QRectF(self.viewport().rect()))
-    #
-    #             if r.isValid() and r.width() > 4 and r.height() > 4:
-    #                 p = QtGui.QPainter(self.viewport())
-    #                 color = QtGui.QColor(0, 0, 0, self.overlay_alpha)  # 半透明黑
-    #                 path = QtGui.QPainterPath()
-    #                 path.addRoundedRect(r, self.overlay_radius, self.overlay_radius)
-    #                 p.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing, True)
-    #                 p.fillPath(path, color)
-    #
-    #     # 再绘制文本（在底板之上）
-    #     super().paintEvent(event)
 
     def paintEvent(self, event: QtGui.QPaintEvent) -> None:
         # 在绘制文字之前画固定矩形底板
