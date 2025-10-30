@@ -1,6 +1,6 @@
 # focuscat_qt.py — FocusCat (Qt version) with sentence coloring, fixed theming, background image
 from PySide6 import QtCore, QtGui, QtWidgets
-import os, random, re, hashlib, colorsys
+import os, random, re, hashlib, colorsys, sys
 from PySide6.QtMultimedia import QSoundEffect
 
 DEFAULT_SAVE     = "autosave.txt"
@@ -170,8 +170,12 @@ class ShadedTextEdit(QtWidgets.QTextEdit):
 class FocusCat(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("FocusCat 🐱")
+        self.setWindowTitle("FocusCat")
         self.resize(980, 640)
+        # 设置程序图标
+        icon_path = os.path.join(os.path.dirname(__file__), "assets", "images", "focuscat_icon.png")
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QtGui.QIcon(icon_path))
 
         # 状态
         self.theme_key = "dark"
@@ -191,8 +195,9 @@ class FocusCat(QtWidgets.QMainWindow):
 
         self.sound_enabled = True  # 菜单可关闭
         self.meow_count = 0  # 计数
+        self.meow_volume = 0.25  # ★ 默认音量(0~1)
         self.meow_effects: list[QSoundEffect] = []
-        self._load_meow_sounds()  # 预加载音效（见下面方法）
+        self._load_meow_sounds()  # 预加载音效
 
         # 顶栏
         top = QtWidgets.QWidget(self.central); top.setObjectName("topbar")
@@ -216,6 +221,7 @@ class FocusCat(QtWidgets.QMainWindow):
         self.btn_meow.clicked.connect(self._on_meow_clicked)
 
         self.lbl_meow_count = QtWidgets.QLabel("0", top)
+        self._load_meow_count()  # ★ 读取历史总点击数并展示
         self.lbl_meow_count.setMinimumWidth(24)
         self.lbl_meow_count.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight | QtCore.Qt.AlignmentFlag.AlignVCenter)
         self.lbl_meow_count.setToolTip("Meow click count")
@@ -329,6 +335,44 @@ class FocusCat(QtWidgets.QMainWindow):
 
         act_enable_sound.toggled.connect(_toggle_sound)
         m_sound.addAction(act_enable_sound)
+
+        # ---------- Reset Counter ----------
+        act_reset_count = QtGui.QAction("Reset Meow Counter", self)
+
+        def _reset_meow_count():
+            self.meow_count = 0
+            self.lbl_meow_count.setText("0")
+            self._save_meow_count()
+            self.status.showMessage("Meow counter reset to 0", 1500)
+
+        act_reset_count.triggered.connect(_reset_meow_count)
+        m_sound.addAction(act_reset_count)
+
+        # ---------- Volume Slider 0~100 ----------
+        m_sound.addSeparator()
+        vol_action = QtWidgets.QWidgetAction(self)
+        vol_widget = QtWidgets.QWidget(self)
+        hl = QtWidgets.QHBoxLayout(vol_widget)
+        hl.setContentsMargins(8, 6, 8, 6)
+
+        lbl_vol = QtWidgets.QLabel(f"Volume: {int(self.meow_volume * 100)}%", vol_widget)
+        sld_vol = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal, vol_widget)
+        sld_vol.setRange(0, 100)
+        sld_vol.setValue(int(self.meow_volume * 100))
+
+        def _on_meow_volume(v: int):
+            self.meow_volume = v / 100.0
+            lbl_vol.setText(f"Volume: {v}%")
+            # 即时作用于已加载的音效
+            for eff in self.meow_effects:
+                eff.setVolume(self.meow_volume)
+            self.status.showMessage(f"Meow volume = {v}%", 1200)
+
+        sld_vol.valueChanged.connect(_on_meow_volume)
+        hl.addWidget(lbl_vol)
+        hl.addWidget(sld_vol)
+        vol_action.setDefaultWidget(vol_widget)
+        m_sound.addAction(vol_action)
 
         # 2.1 开关
         act_toggle = QtGui.QAction("Show Background Shade", self)
@@ -772,6 +816,7 @@ class FocusCat(QtWidgets.QMainWindow):
         # 计数
         self.meow_count += 1
         self.lbl_meow_count.setText(str(self.meow_count))
+        self._save_meow_count()  # ★ 新增：实时持久化
 
         # 声音关闭则不播
         if not self.sound_enabled:
@@ -807,10 +852,37 @@ class FocusCat(QtWidgets.QMainWindow):
             path = os.path.join(sounds_dir, name)
             eff = QSoundEffect(self)
             eff.setSource(QtCore.QUrl.fromLocalFile(path))
-            eff.setVolume(0.85)  # 0.0~1.0
+            eff.setVolume(self.meow_volume)
             # 懒加载：通过访问一次 source() 触发底层准备，减少首次播放延迟
             _ = eff.source()
             self.meow_effects.append(eff)
+
+    def _state_dir(self) -> str:
+        """返回存放持久化小文件的目录（自动创建）。"""
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        d = os.path.join(base_dir, "assets", "state")
+        os.makedirs(d, exist_ok=True)
+        return d
+
+    def _count_path(self) -> str:
+        return os.path.join(self._state_dir(), "meow_count.txt")
+
+    def _load_meow_count(self):
+        """启动时读取总点击次数，并更新标签；读不到就置 0。"""
+        try:
+            with open(self._count_path(), "r", encoding="utf-8") as f:
+                self.meow_count = int((f.read() or "0").strip())
+        except Exception:
+            self.meow_count = 0
+        self.lbl_meow_count.setText(str(self.meow_count))
+
+    def _save_meow_count(self):
+        """将当前总点击次数写回文件。"""
+        try:
+            with open(self._count_path(), "w", encoding="utf-8") as f:
+                f.write(str(self.meow_count))
+        except Exception:
+            pass
 
     # ---------- 计时器 ----------
     def _fmt_time(self):
@@ -867,6 +939,16 @@ class FocusCat(QtWidgets.QMainWindow):
 def main():
     app = QtWidgets.QApplication([])
     QtWidgets.QApplication.setStyle("Fusion")
+    icon_path = os.path.join(os.path.dirname(__file__), "assets", "images", "cat_icon.ico")
+    if os.path.exists(icon_path):
+        app.setWindowIcon(QtGui.QIcon(icon_path))
+
+    # ✅ Windows: 设置 AppUserModelID，任务栏分组/图标才生效
+    try:
+        import ctypes
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("FocusCat.CatStudio.1.0")
+    except Exception:
+        pass
     w = FocusCat()
     w.show()
     app.exec()
