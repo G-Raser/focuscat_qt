@@ -294,6 +294,21 @@ class FocusCat(QtWidgets.QMainWindow):
 
         self.editor = ShadedTextEdit(self.central)
         self.editor.setFont(QtGui.QFont("Consolas", 14))
+
+        # 让 Qt 用一组优先级字体，前面是带中文字形的等宽/近等宽字体
+        mono = QtGui.QFont()
+        mono.setFamilies([
+            "Sarasa Mono SC",  # 推荐：更统一的中英等宽
+            "JetBrains Mono NL",
+            "Cascadia Mono PL",
+            "Microsoft YaHei UI",  # Windows 常见中文
+            "Noto Sans Mono CJK SC",
+            "Consolas"  # 最后兜底
+        ])
+        mono.setPointSize(16)  # 比 14 稍大一点更清晰
+        mono.setStyleHint(QtGui.QFont.Monospace)
+        self.editor.setFont(mono)
+
         # 保持主题样式：确保 Base/背景透明，文字颜色走主题
         # 例如在 _apply_theme 里已有：
         # QTextEdit { background: transparent; border: none; color: <fg>; }
@@ -866,14 +881,49 @@ class FocusCat(QtWidgets.QMainWindow):
                 return True
         return False
 
+    # def _iter_sentence_ends(self, text: str, start_idx: int = 0):
+    #     """
+    #     线性扫描给出“句末”位置（end 索引，包含标点），
+    #     规则：括号未闭合时不结句；缩写的点不结句；中英句末符都支持。
+    #     """
+    #     if start_idx >= len(text):
+    #         return
+    #     paren = 0  # 括号层级：遇 '(' +1，遇 ')' -1
+    #     i = start_idx
+    #     N = len(text)
+    #     while i < N:
+    #         ch = text[i]
+    #         if ch == "(":
+    #             paren += 1
+    #         elif ch == ")":
+    #             paren = max(0, paren - 1)
+    #
+    #         # 句末候选：英文 .?! 或 中文 。！？…
+    #         if ch in ".?!" or ch in "。！？…":
+    #             # 缩写 => 跳过
+    #             if ch == "." and self._is_abbrev_end(text, i):
+    #                 i += 1
+    #                 continue
+    #             # 括号内 => 跳过（把句末延迟到括号闭合之后）
+    #             if paren > 0:
+    #                 i += 1
+    #                 continue
+    #
+    #             # 向右吞掉紧跟的右括号/引号作为“句尾装饰”，一起算进句子
+    #             j = i + 1
+    #             while j < N and text[j] in [")", "”", "’", '"', "'"]:
+    #                 j += 1
+    #
+    #             yield j  # 句子结束位置（右开区间 end）
+    #             i = j
+    #             continue
+    #
+    #         i += 1
     def _iter_sentence_ends(self, text: str, start_idx: int = 0):
-        """
-        线性扫描给出“句末”位置（end 索引，包含标点），
-        规则：括号未闭合时不结句；缩写的点不结句；中英句末符都支持。
-        """
         if start_idx >= len(text):
             return
-        paren = 0  # 括号层级：遇 '(' +1，遇 ')' -1
+        END_CHARS = ".?!。！？…"  # 英文+中文的句末符集合
+        paren = 0
         i = start_idx
         N = len(text)
         while i < N:
@@ -883,23 +933,28 @@ class FocusCat(QtWidgets.QMainWindow):
             elif ch == ")":
                 paren = max(0, paren - 1)
 
-            # 句末候选：英文 .?! 或 中文 。！？…
-            if ch in ".?!" or ch in "。！？…":
-                # 缩写 => 跳过
+            # 候选句末（支持英文/中文）
+            if ch in END_CHARS:
+                # 缩写的点：不结句（如 e.g. / i.e.）
                 if ch == "." and self._is_abbrev_end(text, i):
                     i += 1
                     continue
-                # 括号内 => 跳过（把句末延迟到括号闭合之后）
+                # 括号未闭合：不结句
                 if paren > 0:
                     i += 1
                     continue
 
-                # 向右吞掉紧跟的右括号/引号作为“句尾装饰”，一起算进句子
+                # ① 先把连续的句末符吃成一簇（例如 ……、??!!）
                 j = i + 1
+                while j < N and text[j] in END_CHARS:
+                    j += 1
+
+                # ② 再把紧跟的右括号/引号并入句尾
                 while j < N and text[j] in [")", "”", "’", '"', "'"]:
                     j += 1
 
-                yield j  # 句子结束位置（右开区间 end）
+                # 这个簇的右开区间 j 就是一个完整句子的结束位置
+                yield j
                 i = j
                 continue
 

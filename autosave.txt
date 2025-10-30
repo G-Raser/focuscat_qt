@@ -11,6 +11,6 @@ Quotes might be tricky: “Sometimes I nap for productivity,” said the cat.
 Don’t forget nested brackets ((this is inside that) which is inside this).  
 
 中文测试部分开始：这是一只可爱的猫猫，它喜欢打断你的思路。  
-“喵——”它说道，“再不休息你就要变成键盘侠啦！”  
+“喵——”它说道，“快来陪我玩！”  
 当句子中夹杂英文时（例如 FocusCat、Python、GUI 等词），颜色是否还能保持？  
 最后一行包含各种符号测试：★☆♡！？？～……（￣▽￣）ノシ 结束。
