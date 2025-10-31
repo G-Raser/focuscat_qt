@@ -35,19 +35,35 @@ It provides a minimal distraction interface with gentle visual feedback and enco
 ## 📁 Project Structure
 
 ```
-FocusCat/
- ├── focuscat_qt.py           # Main application script
- ├── test_focuscat.py         # Unit tests for core functions
- ├── assets/                  # Folder for images and audio files
- │   ├── background_default.png
- │   ├── cat-meow-1.wav
- │   ├── cat-meow-2.wav
- │   ├── cat-meow-3.wav
- │   ├── cat-meow-4.wav
- │   └── cat-icon.png
- ├── meow_count.txt           # Persistent file for tracking total clicks
- ├── README.md                # Project description and setup guide
- └── requirements.txt         # Dependencies list (optional)
+focuscat_qt/
+├── assets
+│   ├── images
+│   │   ├── bg_1.jpg
+│   │   ├── bg_2.jpg
+│   │   ├── bg_default.jpg
+│   │   ├── cat_meow.png
+│   │   ├── cat_normal.png
+│   │   └── focuscat_icon.png
+│   ├── sounds
+│   │   ├── cat-meow-1.wav
+│   │   ├── cat-meow-2.wav
+│   │   ├── cat-meow-3.wav
+│   │   ├── cat-meow-4.wav
+│   │   ├── cat-meow-5.wav
+│   │   ├── cat-meow-6.wav
+│   │   ├── cat-meow-7.wav
+│   │   ├── cat-meow-8.wav
+│   │   ├── surprise-1.wav
+│   │   └── surprise-2.wav
+│   └── state
+│       └── meow_count.txt
+├── autosave.txt
+├── focuscat_qt.py
+├── README.md
+├── requirements.txt
+├── test.txt
+├── test_focuscat.py
+└── tree_gen.py
 ```
 
 ---
@@ -62,8 +78,8 @@ Make sure they are stored inside the `assets/` folder.
 ```
 assets/
  ├── background_custom.png
- ├── cat-meow-rare.wav       # Surprise meow sound
- ├── cat-meow-special.wav    # Another rare sound
+ ├── cat-meow-special1.wav       # Surprise meow sound
+ ├── cat-meow-special2.wav    # Another rare sound
 ```
 
 ---
