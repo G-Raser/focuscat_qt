@@ -124,6 +124,7 @@ If you are using PyCharm, you can also right-click the test file and choose **Ru
 - Better UI Design.   
 - Save user preferences (theme, font, opacity, etc.).  
 - Expand English/Chinese motivational quote sets.  
+- Create more sentence colorsets for different background images.
 - ......
 
 ---
