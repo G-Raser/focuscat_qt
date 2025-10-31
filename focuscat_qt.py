@@ -1,48 +1,44 @@
-# focuscat_qt.py — FocusCat (Qt version) with sentence coloring, theming, overlay, sounds
-# NOTE(EN): Comments are short bilingual lines; code style is snake_case.
-# 说明(ZH)：注释为中英各一行；命名统一为 snake_case。
-
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtMultimedia import QSoundEffect
 import os, random, re, hashlib, colorsys, sys
 
 # ===== Constants / 常量 =====
-DEFAULT_SAVE     = "autosave.txt"       # EN: default autosave path / ZH：默认自动保存路径
-POMODORO_MIN     = 25                   # EN: default focus minutes / ZH：默认番茄钟分钟数
-HEARTBEAT_MS     = 200                  # EN: UI heartbeat interval / ZH：心跳刷新间隔
-SENT_END_RE      = r"[\.!\?。！？…]+"     # EN: sentence-end regex / ZH：句末正则
-QUOTE_ROTATE_MIN = 60                   # EN: min quote rotate seconds / ZH：喵语最短轮换秒
-QUOTE_ROTATE_MAX = 120                  # EN: max quote rotate seconds / ZH：喵语最长轮换秒
+DEFAULT_SAVE     = "autosave.txt"       # default autosave path / 默认自动保存路径
+POMODORO_MIN     = 25                   # default focus minutes / 默认番茄钟分钟数
+HEARTBEAT_MS     = 200                  # UI heartbeat interval / 心跳刷新间隔
+SENT_END_RE      = r"[\.!\?。！？…]+"     # sentence-end regex / 句末正则
+QUOTE_ROTATE_MIN = 60                   # min quote rotate seconds / 喵语最短轮换秒
+QUOTE_ROTATE_MAX = 120                  # max quote rotate seconds / 喵语最长轮换秒
 
-THEMES = {  # EN: theme palette / ZH：主题配色
+THEMES = {  # theme palette / 主题配色
     "dark":    {"bg": "#181818", "fg": "#ffffff", "bar": "#202020"},
     "light":   {"bg": "#FAFAFA", "fg": "#111111", "bar": "#EFEFEF"},
     "eyecare": {"bg": "#FFF3B0", "fg": "#2b2b2b", "bar": "#FFE89A"},
 }
 
-PALETTE = [  # EN: base colors for gradients / ZH：渐变基色池
+PALETTE = [  # base colors for gradients / 渐变基色池
     "#FF6B6B", "#FFD93D", "#6BCB77", "#4D96FF", "#FF9CEE",
     "#A3E4DB", "#FFB26B", "#B983FF", "#FFC7C7", "#7DE5ED"
 ]
 
-QUOTES_ZH = [  # EN: rotating quotes (ZH) / ZH：中文提示语
+QUOTES_ZH = [  # rotating quotes (ZH) / 中文提示语
     "(｡･∀･)ﾉﾞ 喵～好棒，继续写！", "(*´∀`)♡ 再来一句！", "(⁎˃ᴗ˂⁎) 你今天状态很好喵！",
     "(ฅ'ω'ฅ)♪ 伸个懒腰，然后继续～", "(●´ω｀●) FocusCat 为你守护专注 ✨",
     "(⁎˃ᴗ˂⁎) 喝口水，眼睛休息十秒喵～", "(=^･ω･^=) 先写不完美，也很棒喵！"
 ]
-QUOTES_EN = [  # EN: rotating quotes (EN) / ZH：英文提示语
+QUOTES_EN = [  # rotating quotes (EN) / 英文提示语
     "(｡･∀･)ﾉﾞ Meow~ you're doing great!", "(*´∀`)♡ One more line, you got this!",
     "(⁎˃ᴗ˂⁎) Looking sharp today, human!", "(ฅ'ω'ฅ)♪ Stretch a bit and keep going!",
     "(●´ω｀●) FocusCat is guarding your focus ✨", "(⁎˃ᴗ˂⁎) Sip some water and relax your eyes!",
     "(=^･ω･^=) It's okay to write imperfectly first!"
 ]
 
-# EN: common abbreviations to avoid false sentence split / ZH：常见缩写避免误判句末
+# common abbreviations to avoid false sentence split / 常见缩写避免误判句末
 ABBREVIATIONS = [
     "e.g.", "i.e.", "etc.", "vs.", "cf.", "fig.", "al.", "ca.",
     "mr.", "mrs.", "ms.", "dr.", "prof.", "sr.", "jr.",
     "ph.d.", "u.s.", "u.k.", "a.m.", "p.m.",
-    "eg.", "ie.", "etc"  # EN: loose forms / ZH：常见漏点写法
+    "eg.", "ie.", "etc"  # loose forms / 常见漏点写法
 ]
 
 
@@ -164,7 +160,7 @@ class FocusCat(QtWidgets.QMainWindow):
             self.setWindowIcon(QtGui.QIcon(icon_path))
 
         # --- States / 状态 ---
-        self.theme_key     = "dark"     # EN: current theme / ZH：当前主题
+        self.theme_key     = "dark"     # current theme / 当前主题
         self.time_left     = POMODORO_MIN * 60
         self.running       = False
         self.quote_lang    = "en"
@@ -185,7 +181,7 @@ class FocusCat(QtWidgets.QMainWindow):
         self.meow_count       = 0
         self.meow_effects:    list[QSoundEffect] = []
         self.surprise_effects:list[QSoundEffect] = []
-        self.surprise_prob    = 0.10  # EN: demo probability / ZH：演示用概率
+        self.surprise_prob    = 0.10  # demo probability / 演示用概率
         self._load_meow_sounds()
         self._ensure_state_dir()
 
@@ -789,7 +785,7 @@ class FocusCat(QtWidgets.QMainWindow):
             eff = QSoundEffect(self)
             eff.setSource(QtCore.QUrl.fromLocalFile(path))
             eff.setVolume(self.meow_volume)
-            _ = eff.source()  # EN: warm up / ZH：预热
+            _ = eff.source()  # warm up / 预热
             return eff
 
         for name in os.listdir(sounds_dir):
@@ -904,12 +900,12 @@ def main():
     app = QtWidgets.QApplication([])
     QtWidgets.QApplication.setStyle("Fusion")
 
-    # EN: global app icon / ZH：全局应用图标
+    # global app icon / 全局应用图标
     icon_path = os.path.join(os.path.dirname(__file__), "assets", "images", "cat_icon.ico")
     if os.path.exists(icon_path):
         app.setWindowIcon(QtGui.QIcon(icon_path))
 
-    # EN: Windows taskbar AppUserModelID / ZH：Windows 任务栏分组 ID
+    # Windows taskbar AppUserModelID / Windows 任务栏分组 ID
     try:
         import ctypes
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("FocusCat.CatStudio.1.0")
