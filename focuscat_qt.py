@@ -99,7 +99,7 @@ class ShadedTextEdit(QtWidgets.QTextEdit):
 
         # --- overlay params / 黑底参数 ---
         self.overlay_enabled = True      # 是否启用
-        self.overlay_alpha   = 170       # 透明度 0~255
+        self.overlay_alpha   = 77       # 透明度 0~255
         self.overlay_radius  = 8         # 圆角
         self.overlay_margin  = 8         # 视口四边内缩（避免贴边）
         self.overlay_extra   = 18        # 在可编辑区域基础上再向外扩一圈（保证更大于文字区域）

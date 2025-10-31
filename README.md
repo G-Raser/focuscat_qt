@@ -18,19 +18,33 @@ It provides a minimal distraction interface with gentle visual feedback and enco
 
 ---
 
-## ⚙️ How to Run
+## ⚙️ How to Run (Windows)
 
-1. Make sure you have **Python 3.9+** and the following dependencies installed:
 
-   ```bash
-   pip install PySide6
-   ```
+[//]: # (1&#41; **Create & activate a virtual environment**)
 
-2. Run the program:
 
-   ```bash
-   python focuscat_qt.py
-   ```
+1. **Install dependencies**
+
+```powershell
+pip install -r requirements.txt
+```
+
+2. **Run the app**
+
+```powershell
+python focuscat_qt.py
+```
+
+3. **(Optional) Run tests**
+
+```powershell
+python -m pytest -q test_focuscat.py
+```
+
+### Notes
+
+* If you are using PyCharm, you can also right-click the test file and choose **Run ‘pytest in test_focuscat.py’** to run tests.
 
 ---
 

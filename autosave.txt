@@ -8,7 +8,7 @@ Emails like cat@focus.cat are also safe.
 再来一些组合句：  
 (1) 有括号的句子（这也是测试）。  
 (2) 引号里的缩写：“我喜欢看 U.S. 电影。”  
-(3) 同时含缩写与省略：“我去过伦敦、巴黎等城市……”。  
+(3) 同时含缩写与省略：“我去过伦敦、巴黎等城市……”  
 Let's mix again: “I like ice cream...do you?” she said.  
 Wait... is it working? Yes!! It should stop here... or maybe not?!  
 End of test.
