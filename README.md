@@ -100,14 +100,14 @@ Make sure they are stored inside the `assets/` folder.
 
 ## ⚙️ Key Functionalities
 
-| Feature                     | Description                                             |
-| --------------------------- | ------------------------------------------------------- |
-| **Focus Timer**             | Start, pause, and reset a writing timer with a simple interface. |
+| Feature                 | Description                                             |
+|-------------------------| ------------------------------------------------------- |
+| **Focus Timer**         | Start, pause, and reset a writing timer with a simple interface. |
 | **Auto Color Highlighting** | Each sentence gets a random bright color, making progress visually rewarding. |
-| **Cat Meow Button**         | Clickable cat icon triggers a random meow sound and increases total click count. |
-| **Volume Control**          | Adjust overall sound volume through a slider in the settings. |
-| **Background Overlay**      | Automatic dark overlay behind text for better visibility, with adjustable opacity. |
-| **Surprise Sounds**         | Extremely rare hidden sounds for fun Easter eggs.       |
+| **Meow Clicker**        | Clickable cat icon triggers a random meow sound and increases total click count. |
+| **Volume Control**      | Adjust overall sound volume through a slider in the settings. |
+| **Background Overlay**  | Automatic dark overlay behind text for better visibility, with adjustable opacity. |
+| **Surprise Sounds**     | Extremely rare hidden sounds for fun Easter eggs.       |
 
 ---
 
