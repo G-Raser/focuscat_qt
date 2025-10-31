@@ -33,38 +33,9 @@ It provides a minimal distraction interface with gentle visual feedback and enco
 ---
 
 ## 📁 Project Structure
+<!-- PROJECT_STRUCTURE_START -->
+<!-- PROJECT_STRUCTURE_END -->
 
-```
-focuscat_qt/
-├── assets
-│   ├── images
-│   │   ├── bg_1.jpg
-│   │   ├── bg_2.jpg
-│   │   ├── bg_default.jpg
-│   │   ├── cat_meow.png
-│   │   ├── cat_normal.png
-│   │   └── focuscat_icon.png
-│   ├── sounds
-│   │   ├── cat-meow-1.wav
-│   │   ├── cat-meow-2.wav
-│   │   ├── cat-meow-3.wav
-│   │   ├── cat-meow-4.wav
-│   │   ├── cat-meow-5.wav
-│   │   ├── cat-meow-6.wav
-│   │   ├── cat-meow-7.wav
-│   │   ├── cat-meow-8.wav
-│   │   ├── surprise-1.wav
-│   │   └── surprise-2.wav
-│   └── state
-│       └── meow_count.txt
-├── autosave.txt
-├── focuscat_qt.py
-├── README.md
-├── requirements.txt
-├── test.txt
-├── test_focuscat.py
-└── tree_gen.py
-```
 
 ---
 

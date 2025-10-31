@@ -7,6 +7,16 @@ DEFAULT_IGNORES = {
     ".pytest_cache", "dist", "build", ".DS_Store"
 }
 
+
+def find_project_root(start: Path) -> Path:
+    cur = start
+    markers = {".git", "pyproject.toml", "README.md"}
+    while cur != cur.parent:
+        if any((cur / m).exists() for m in markers):
+            return cur
+        cur = cur.parent
+    return start  # fallback
+
 def build_tree(root: Path, ignores: set[str], max_depth: int = 10) -> list[str]:
     lines: list[str] = []
     def walk(dir_path: Path, prefix: str = "", depth: int = 0):
@@ -60,7 +70,10 @@ def main():
     ap.add_argument("--end-marker", type=str, default="<!-- PROJECT_STRUCTURE_END -->")
     args = ap.parse_args()
 
-    root = Path(args.root).resolve()
+    # root = Path(args.root).resolve()
+    default_root = find_project_root(Path(__file__).resolve().parent)
+    root = Path(args.root).resolve() if args.root != "." else default_root
+
     ignores = set(DEFAULT_IGNORES) | set(args.ignore)
     tree_lines = build_tree(root, ignores, args.max_depth)
     md = write_markdown_block(tree_lines)
