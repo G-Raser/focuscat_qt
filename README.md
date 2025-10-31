@@ -42,6 +42,8 @@ focuscat_qt/
 │   ├── images
 │   │   ├── bg_1.jpg
 │   │   ├── bg_2.jpg
+│   │   ├── bg_3.jpg
+│   │   ├── bg_4.jpg
 │   │   ├── bg_default.jpg
 │   │   ├── cat_meow.png
 │   │   ├── cat_normal.png
@@ -80,15 +82,6 @@ focuscat_qt/
 To customize your experience, you can replace or add your own cat sounds and background images.  
 Make sure they are stored inside the `assets/` folder.
 
-### Example:
-
-```
-assets/
- ├── background_custom.png
- ├── cat-meow-special1.wav       # Surprise meow sound
- ├── cat-meow-special2.wav    # Another rare sound
-```
-
 ---
 
 ## 🧪 Testing
@@ -96,12 +89,13 @@ assets/
 Unit tests are located in `test_focuscat.py`.  
 They cover sentence-splitting, punctuation handling, and gradient color generation.
 
-Run all tests using:
+For **Windows System**, run all tests using:
 
-```bash
-pytest test_focuscat.py
+```powershell
+python -m pip install -r requirements.txt
+$env:QT_QPA_PLATFORM = 'offscreen'   # optional, headless
+python -m pytest -q test_focuscat.py
 ```
-
 If you are using PyCharm, you can also right-click the test file and choose **Run ‘pytest in test_focuscat.py’**.
 
 ---
@@ -146,26 +140,6 @@ If you are using PyCharm, you can also right-click the test file and choose **Ru
 
 ---
 
-[//]: # ()
-[//]: # (## 🧡 Contribution)
-
-[//]: # ()
-[//]: # (Pull requests are welcome!  )
-
-[//]: # (If you’d like to improve the cat’s behavior, sound logic, or UI design, feel free to submit a merge request.  )
-
-[//]: # (Please ensure all new features include basic comments and at least one test function.)
-
-[//]: # ()
-[//]: # (---)
-
 ## 🐾 Author
 
 Created by **Haiqing Bai**.  
-
-[//]: # (FocusCat is designed as a personal productivity and creative exploration project —  )
-
-[//]: # (to make focus *cute*, writing *fun*, and progress *visible*.  )
-
-[//]: # ()
-[//]: # (> “The cat meows softly, reminding you that even one sentence is progress.” 🐱)
