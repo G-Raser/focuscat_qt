@@ -130,16 +130,16 @@ If you are using PyCharm, you can also right-click the test file and choose **Ru
 
 ---
 
-## 🧰 Technical Details
+## 🤖 Technical Details
 
 - **Language:** Python 3  
 - **Framework:** PySide6 (Qt for Python)  
-- **UI Design:** Custom QMainWindow layout with QTextEdit, QPushButton, and overlay layers  
-- **Data Persistence:** Click count saved to a local text file  
+- **UI Design:** Custom QMainWindow layout with QTextEdit, QPushButton, and simple overlay 
+- **Data Persistence:** Notes and click count saved to local text files  
 - **Testing:** Built-in `unittest` compatible with `pytest` runner
 
 ---
 
 ## 🐾 Author
 
-Created by **Haiqing Bai**.  
+Created and developed by **Haiqing Bai**.  
