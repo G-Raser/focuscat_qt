@@ -3,16 +3,17 @@
 **FocusCat** is a lightweight writing companion designed to help users stay focused, relaxed, and motivated during writing sessions.  
 It provides a minimal distraction interface with gentle visual feedback and encouraging messages — turning the act of writing into something calm and enjoyable.
 
+![img.png](readme_imgs/img.png)
 ---
 
 ## ✨ Features
 
-- 🕒 **Focus Timer** — Divide work into manageable sessions with start, pause, and reset functions.  
-- 🌈 **Dynamic Sentence Colors** — Each sentence appears in a random soft color to make progress more visible and engaging.  
-- 🐱 **Cat Interaction Button** — Click the cat to hear a random meow sound, with total clicks recorded persistently.  
-- 🎵 **Sound Options** — Adjustable volume and toggle for all sound effects in the settings menu.  
-- 🖼️ **Customizable Background** — Add your own background image or use the included default dark theme with subtle paw prints.  
-- 💬 **Motivational Quotes** — Displays cute, supportive phrases during writing to maintain focus and positivity.
+- **Focus Timer** — Divide work into manageable sessions with start, pause, and reset functions.  
+- **Dynamic Sentence Colors** — Each sentence appears in a random soft color to make progress more visible and engaging.  
+- **Cat Interaction Button** — Click the cat to hear a random meow sound, with total clicks recorded persistently.  
+- **Sound Options** — Adjustable volume and toggle for all sound effects in the settings menu.  
+- **Customizable Background** — Add your own background image or use the included default dark theme with subtle paw prints.  
+- **Motivational Quotes** — Displays cute, supportive phrases during writing to maintain focus and positivity.
 
 ---
 
@@ -104,24 +105,23 @@ If you are using PyCharm, you can also right-click the test file and choose **Ru
 
 ## ⚙️ Key Functionalities
 
-| Feature                     | Description                                                  |
-| --------------------------- | ------------------------------------------------------------ |
+| Feature                     | Description                                             |
+| --------------------------- | ------------------------------------------------------- |
 | **Focus Timer**             | Start, pause, and reset a writing timer with a simple interface. |
 | **Auto Color Highlighting** | Each sentence gets a random bright color, making progress visually rewarding. |
 | **Cat Meow Button**         | Clickable cat icon triggers a random meow sound and increases total click count. |
 | **Volume Control**          | Adjust overall sound volume through a slider in the settings. |
 | **Background Overlay**      | Automatic dark overlay behind text for better visibility, with adjustable opacity. |
-| **Surprise Sounds**         | Extremely rare hidden meow sounds for fun Easter eggs.       |
+| **Surprise Sounds**         | Extremely rare hidden sounds for fun Easter eggs.       |
 
 ---
 
 ## 💡 Future Enhancements
 
-- 🐾 Animated cat expressions when clicked.  
-- 🌙 Theme presets (Day/Night/Cat Cafe).  
-- 💾 Save user preferences (theme, font, opacity, etc.).  
-- 📜 Expand English/Chinese motivational quote sets.  
-- 🧠 Add productivity statistics (session count, total time, etc.).
+- Better UI Design.   
+- Save user preferences (theme, font, opacity, etc.).  
+- Expand English/Chinese motivational quote sets.  
+- ......
 
 ---
 
@@ -142,18 +142,26 @@ If you are using PyCharm, you can also right-click the test file and choose **Ru
 
 ---
 
-## 🧡 Contribution
+[//]: # ()
+[//]: # (## 🧡 Contribution)
 
-Pull requests are welcome!  
-If you’d like to improve the cat’s behavior, sound logic, or UI design, feel free to submit a merge request.  
-Please ensure all new features include basic comments and at least one test function.
+[//]: # ()
+[//]: # (Pull requests are welcome!  )
 
----
+[//]: # (If you’d like to improve the cat’s behavior, sound logic, or UI design, feel free to submit a merge request.  )
 
-## 🐾 Author & Credits
+[//]: # (Please ensure all new features include basic comments and at least one test function.)
 
-Created by **G-Raser** (University of Sydney, COMP9001).  
-FocusCat is designed as a personal productivity and creative exploration project —  
-to make focus *cute*, writing *fun*, and progress *visible*.  
+[//]: # ()
+[//]: # (---)
 
-> “The cat meows softly, reminding you that even one sentence is progress.” 🐱
+## 🐾 Author
+
+Created by **Haiqing Bai**.  
+
+[//]: # (FocusCat is designed as a personal productivity and creative exploration project —  )
+
+[//]: # (to make focus *cute*, writing *fun*, and progress *visible*.  )
+
+[//]: # ()
+[//]: # (> “The cat meows softly, reminding you that even one sentence is progress.” 🐱)
