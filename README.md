@@ -4,6 +4,7 @@
 It provides a minimal distraction interface with gentle visual feedback and encouraging messages — turning the act of writing into something calm and enjoyable.
 
 ![img.png](readme_imgs/img.png)
+
 ---
 
 ## ✨ Features
