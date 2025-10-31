@@ -98,22 +98,6 @@ Make sure they are stored inside the `assets/` folder.
 
 ---
 
-## 🧪 Testing
-
-Unit tests are located in `test_focuscat.py`.  
-They cover sentence-splitting, punctuation handling, and gradient color generation.
-
-For **Windows System**, run all tests using:
-
-```powershell
-python -m pip install -r requirements.txt
-$env:QT_QPA_PLATFORM = 'offscreen'   # optional, headless
-python -m pytest -q test_focuscat.py
-```
-If you are using PyCharm, you can also right-click the test file and choose **Run ‘pytest in test_focuscat.py’**.
-
----
-
 ## ⚙️ Key Functionalities
 
 | Feature                     | Description                                             |
