@@ -4,11 +4,11 @@ Here's something tricky: 3.14 is a number, not the end of a sentence. The websit
 Emails like cat@focus.cat are also safe.  
 中文测试：你好呀！今天的天气真不错呢？我们去公园玩吧！……不过，也许等会再说。  
 再试试中文引号：「今天的‘猫猫’很可爱」，对吗？  
-连续符号测试：啊啊啊！！！这是什么？！真的……不可思议……！！  
+连续符号测试：哈哈哈！！！这是什么？！真的……不可思议……！！  
 再来一些组合句：  
 (1) 有括号的句子（这也是测试）。  
 (2) 引号里的缩写：“我喜欢看 U.S. 电影。”  
 (3) 同时含缩写与省略：“我去过伦敦、巴黎等城市……”。  
-Let's mix again: “I like ice cream... do you?” she said.  
+Let's mix again: “I like ice cream...do you?” she said.  
 Wait... is it working? Yes!! It should stop here... or maybe not?!  
 End of test.

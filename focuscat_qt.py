@@ -48,15 +48,16 @@ ABBREVIATIONS = [
 
 # ===== Widgets / 组件 =====
 class BgCentralWidget(QtWidgets.QWidget):
-    """EN: Central widget that draws a cover background image.
-       ZH：绘制铺满的背景图的中心容器。"""
+    """Central widget that draws a cover background image.
+		绘制铺满的背景图的中心容器。"""
     def __init__(self, parent=None):
         super().__init__(parent)
         self._bg_pix: QtGui.QPixmap | None = None
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_StyledBackground, True)
 
     def set_background_image(self, path: str):
-        """EN: Set cover background image. ZH：设置铺满背景图。"""
+        """Set cover background image.
+		设置铺满背景图。"""
         pm = QtGui.QPixmap(path)
         if pm.isNull():
             raise RuntimeError("Failed to load image / 无法加载图片")
@@ -64,12 +65,14 @@ class BgCentralWidget(QtWidgets.QWidget):
         self.update()
 
     def clear_background(self):
-        """EN: Clear background image. ZH：清除背景图。"""
+        """Clear background image.
+		清除背景图。"""
         self._bg_pix = None
         self.update()
 
     def paintEvent(self, e: QtGui.QPaintEvent) -> None:
-        """EN: Cover-scale draw; center-crop. ZH：等比放大并居中裁切。"""
+        """Cover-scale draw; center-crop.
+		等比放大并居中裁切。"""
         p = QtGui.QPainter(self)
         p.fillRect(self.rect(), self.palette().window())
         if self._bg_pix:
@@ -91,8 +94,8 @@ class BgCentralWidget(QtWidgets.QWidget):
         super().paintEvent(e)
 
 class ShadedTextEdit(QtWidgets.QTextEdit):
-    """EN: Text editor with fixed semi-transparent overlay rectangle.
-       ZH：带固定半透明矩形底的文本编辑器（大小不随文字变化）。"""
+    """Text editor with fixed semi-transparent overlay rectangle.
+		带固定半透明矩形底的文本编辑器（大小不随文字变化）。"""
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setAcceptRichText(False)
@@ -128,12 +131,14 @@ class ShadedTextEdit(QtWidgets.QTextEdit):
 
     # —— 菜单要用到的两个方法（名称保持不变）——
     def set_overlay_alpha(self, v: int):
-        """EN: set transparency 0~255 / ZH：设置透明度 0~255"""
+        """set transparency 0~255
+		设置透明度 0~255"""
         self.overlay_alpha = max(0, min(255, int(v)))
         self.viewport().update()
 
     def set_overlay_enabled(self, enabled: bool):
-        """EN: toggle shade on/off / ZH：开关黑底"""
+        """toggle shade on/off
+		开关黑底"""
         self.overlay_enabled = bool(enabled)
         self.viewport().update()
 
@@ -146,7 +151,8 @@ class ShadedTextEdit(QtWidgets.QTextEdit):
 
 # ===== Main Window / 主窗体 =====
 class FocusCat(QtWidgets.QMainWindow):
-    """EN: Main window. ZH：主窗口。"""
+    """Main window.
+		主窗口。"""
     def __init__(self):
         super().__init__()
 
@@ -323,12 +329,14 @@ class FocusCat(QtWidgets.QMainWindow):
         return super().eventFilter(obj, ev)
 
     def _set_pressed_icon(self):
-        """EN: switch to pressed icon. ZH：切换到按下图标。"""
+        """switch to pressed icon.
+		切换到按下图标。"""
         if not self.cat_img_pressed.isNull():
             self.btn_meow.setIcon(QtGui.QIcon(self.cat_img_pressed))
 
     def _revert_meow_icon(self):
-        """EN: revert to normal icon. ZH：恢复普通图标。"""
+        """revert to normal icon.
+		恢复普通图标。"""
         if not self.cat_img_normal.isNull():
             self.btn_meow.setIcon(QtGui.QIcon(self.cat_img_normal))
         self._meow_pressed = False
@@ -417,7 +425,8 @@ class FocusCat(QtWidgets.QMainWindow):
 
     # ===== Theme / 主题 =====
     def _apply_theme(self, key: str):
-        """EN: Apply app-wide palette & styles. ZH：应用统一调色板与样式。"""
+        """Apply app-wide palette & styles.
+		应用统一调色板与样式。"""
         self.theme_key = key
         conf = THEMES[key]
         QtWidgets.QApplication.setStyle("Fusion")
@@ -470,7 +479,8 @@ class FocusCat(QtWidgets.QMainWindow):
 
     # ===== File ops / 文件操作 =====
     def new_file(self):
-        """EN: Clear to new file. ZH：新建并清空内容。"""
+        """Clear to new file.
+		新建并清空内容。"""
         if self._confirm_discard():
             self.editor.clear()
             self.current_file = DEFAULT_SAVE
@@ -479,7 +489,8 @@ class FocusCat(QtWidgets.QMainWindow):
             self._last_colored_pos = 0
 
     def open_file(self):
-        """EN: Open a text file. ZH：打开文本文件。"""
+        """Open a text file.
+		打开文本文件。"""
         path, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open", "", "Text (*.txt);;All files (*)")
         if not path:
             return
@@ -495,7 +506,8 @@ class FocusCat(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.critical(self, "Open failed", str(e))
 
     def save_file(self, save_as=False):
-        """EN: Save current content. ZH：保存当前内容。"""
+        """Save current content.
+		保存当前内容。"""
         path = self.current_file
         if save_as or path == DEFAULT_SAVE:
             path, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save As", "", "Text (*.txt);;All files (*)")
@@ -511,7 +523,8 @@ class FocusCat(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.critical(self, "Save failed", str(e))
 
     def _load_if_exists(self, path):
-        """EN: Load file if exists. ZH：若文件存在则加载。"""
+        """Load file if exists.
+		若文件存在则加载。"""
         if os.path.exists(path):
             try:
                 with open(path, "r", encoding="utf-8") as f:
@@ -522,7 +535,8 @@ class FocusCat(QtWidgets.QMainWindow):
                 pass
 
     def _confirm_discard(self):
-        """EN: Confirm discard when not empty. ZH：非空时确认放弃。"""
+        """Confirm discard when not empty.
+		非空时确认放弃。"""
         if not self.editor.toPlainText().strip():
             return True
         ret = QtWidgets.QMessageBox.question(self, "New file", "Discard current content?")
@@ -530,7 +544,8 @@ class FocusCat(QtWidgets.QMainWindow):
 
     # ===== Background / 背景图 =====
     def _set_background_image(self):
-        """EN: Choose and set background image. ZH：选择并设置背景图。"""
+        """Choose and set background image.
+		选择并设置背景图。"""
         path, _ = QtWidgets.QFileDialog.getOpenFileName(
             self, "Choose Background Image", "",
             "Images (*.png *.jpg *.jpeg *.bmp *.gif);;All files (*)"
@@ -545,20 +560,23 @@ class FocusCat(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.critical(self, "Set Background Failed", str(e))
 
     def _clear_background(self):
-        """EN: Clear background image. ZH：清除背景图。"""
+        """Clear background image.
+		清除背景图。"""
         self.central.clear_background()
         self.status.showMessage("Background cleared", 3000)
         QtWidgets.QMessageBox.information(self, "Background Cleared", "已清除背景图。")
 
     # ===== Status / 状态栏 =====
     def _update_word_status(self):
-        """EN: update words count on status bar. ZH：更新状态栏字数。"""
+        """update words count on status bar.
+		更新状态栏字数。"""
         words = len(self.editor.toPlainText().split())
         self.status.showMessage(f"Words: {words}", 2000)
 
     # ===== Gradient utilities / 渐变工具 =====
     def _stable_gradient(self, base_hex: str, length: int, seed: int):
-        """EN: HSV-based stable gradient. ZH：基于 HSV 的稳定渐变。"""
+        """HSV-based stable gradient.
+		基于 HSV 的稳定渐变。"""
         r = int(base_hex[1:3], 16) / 255.0
         g = int(base_hex[3:5], 16) / 255.0
         b = int(base_hex[5:7], 16) / 255.0
@@ -578,8 +596,8 @@ class FocusCat(QtWidgets.QMainWindow):
     def _doc_text(self): return self.editor.toPlainText()
 
     def _normalize_span(self, start: int, end: int):
-        """EN: trim span for color seed; return normalized range.
-           ZH：对区间做首尾空白对齐并返回规范化文本用于取色。"""
+        """trim span for color seed; return normalized range.
+		对区间做首尾空白对齐并返回规范化文本用于取色。"""
         full = self._doc_text()
         seg  = full[start:end]
         ltrim = len(seg) - len(seg.lstrip())
@@ -591,7 +609,8 @@ class FocusCat(QtWidgets.QMainWindow):
         return new_start, new_end, clean
 
     def _clear_format_range(self, start: int, end: int):
-        """EN: reset color to theme default. ZH：将前景色复位为主题默认色。"""
+        """reset color to theme default.
+		将前景色复位为主题默认色。"""
         cur = self.editor.textCursor()
         cur.setPosition(start, QtGui.QTextCursor.MoveAnchor)
         cur.setPosition(end,   QtGui.QTextCursor.KeepAnchor)
@@ -600,7 +619,8 @@ class FocusCat(QtWidgets.QMainWindow):
         cur.mergeCharFormat(fmt)
 
     def _apply_color_to_range(self, start: int, end: int):
-        """EN: color sentence by left-to-right gradient. ZH：按左到右渐变为句子着色。"""
+        """color sentence by left-to-right gradient.
+		按左到右渐变为句子着色。"""
         start, end, clean = self._normalize_span(start, end)
         if not clean:
             return
@@ -616,7 +636,8 @@ class FocusCat(QtWidgets.QMainWindow):
             cur.mergeCharFormat(fmt)
 
     def _colorize_all_sentences_once(self):
-        """EN: color all finished sentences. ZH：为已完成句子批量上色。"""
+        """color all finished sentences.
+		为已完成句子批量上色。"""
         full = self._doc_text()
         self._last_colored_pos = 0
         spans, start = [], 0
@@ -625,7 +646,8 @@ class FocusCat(QtWidgets.QMainWindow):
         self._colorize_by_spans(spans)
 
     def _scan_and_color_new_sentences(self):
-        """EN: color newly finished sentences. ZH：为新增完成的句子上色。"""
+        """color newly finished sentences.
+		为新增完成的句子上色。"""
         full = self._doc_text()
         if self._last_colored_pos >= len(full):
             return
@@ -635,13 +657,14 @@ class FocusCat(QtWidgets.QMainWindow):
         self._colorize_by_spans(spans)
 
     def _is_abbrev_end(self, text: str, dot_idx: int) -> bool:
-        """EN: whether '.' belongs to an abbreviation / ZH：判断点是否为缩写结尾。"""
+        """whether '.' belongs to an abbreviation
+		判断点是否为缩写结尾。"""
         window = text[max(0, dot_idx - 10): dot_idx + 1].lower()
         return any(window.endswith(abbr) for abbr in ABBREVIATIONS)
 
     def _iter_sentence_ends(self, text: str, start_idx: int = 0):
-        """EN: yield end positions of sentences; skip abbrev/digits/inside parens.
-           ZH：产出句末位置；跳过缩写/小数点/括号未闭合场景。"""
+        """yield end positions of sentences; skip abbrev/digits/inside parens.
+		产出句末位置；跳过缩写/小数点/括号未闭合场景。"""
         if start_idx >= len(text):
             return
         END_CHARS = ".?!。！？…"
@@ -672,52 +695,60 @@ class FocusCat(QtWidgets.QMainWindow):
             i += 1
 
     def _colorize_by_spans(self, spans):
-        """EN: apply color for spans and advance cursor. ZH：区间上色并推进游标。"""
+        """apply color for spans and advance cursor.
+		区间上色并推进游标。"""
         for st, ed in spans:
             self._apply_color_to_range(st, ed)
             self._last_colored_pos = ed
 
     # ===== Quotes / 喵语 =====
     def _random_quote(self):
-        """EN: pick a random quote by lang. ZH：按语言随机选择一句喵语。"""
+        """pick a random quote by lang.
+		按语言随机选择一句喵语。"""
         pool = QUOTES_ZH if self.quote_lang == "zh" else QUOTES_EN
         return random.choice(pool) if pool else ""
 
     def _set_quote(self, text): self.lbl_quote.setText(text)
     def _set_quote_lang(self, lang):
-        """EN: change language and rotate now. ZH：切换语言并立即轮换。"""
+        """change language and rotate now.
+		切换语言并立即轮换。"""
         self.quote_lang = lang
         self._set_quote(self._random_quote())
         self._schedule_quote_rotation(reset=True)
 
     def _schedule_quote_rotation(self, immediate=False, reset=False):
-        """EN: schedule next quote rotation. ZH：安排下一次喵语轮换。"""
+        """schedule next quote rotation.
+		安排下一次喵语轮换。"""
         if reset: self._quote_timer.stop()
         if immediate: self._set_quote(self._random_quote())
         delay = random.randint(QUOTE_ROTATE_MIN, QUOTE_ROTATE_MAX) * 1000
         self._quote_timer.start(delay)
 
     def _rotate_quote(self):
-        """EN: timer callback to rotate quote. ZH：定时回调更换喵语。"""
+        """timer callback to rotate quote.
+		定时回调更换喵语。"""
         self._set_quote(self._random_quote())
         self._schedule_quote_rotation()
 
     # ===== Meow sounds / 喵叫音效 =====
     def _toggle_sound(self, checked: bool):
-        """EN: toggle meow sounds; sync button enabled. ZH：开关音效并同步按钮可用。"""
+        """toggle meow sounds; sync button enabled.
+		开关音效并同步按钮可用。"""
         self.sound_enabled = bool(checked)
         self.btn_meow.setEnabled(self.sound_enabled)
         self.status.showMessage("Meow sounds: ON" if checked else "Meow sounds: OFF", 1200)
 
     def _reset_meow_count(self):
-        """EN: reset counter to 0 and persist. ZH：计数清零并写回文件。"""
+        """reset counter to 0 and persist.
+		计数清零并写回文件。"""
         self.meow_count = 0
         self.lbl_meow_count.setText("0")
         self._save_meow_count()
         self.status.showMessage("Meow counter reset to 0", 1500)
 
     def _on_meow_volume(self, v: int):
-        """EN: update volume and labels; apply to effects. ZH：更新音量与标签并应用到音效。"""
+        """update volume and labels; apply to effects.
+		更新音量与标签并应用到音效。"""
         self.meow_volume = v / 100.0
         self.lbl_vol.setText(f"Volume: {v}%")
         for eff in (*self.meow_effects, *self.surprise_effects):
@@ -725,8 +756,8 @@ class FocusCat(QtWidgets.QMainWindow):
         self.status.showMessage(f"Meow volume = {v}%", 1200)
 
     def _on_meow_clicked(self):
-        """EN: increase count and play sound (with rare surprise).
-           ZH：计数并播放声音（含小概率惊喜）。"""
+        """increase count and play sound (with rare surprise).
+		计数并播放声音（含小概率惊喜）。"""
         self.meow_count += 1
         self.lbl_meow_count.setText(str(self.meow_count))
         self._save_meow_count()
@@ -747,7 +778,8 @@ class FocusCat(QtWidgets.QMainWindow):
             self.status.showMessage("Surprise meow!", 1500)
 
     def _load_meow_sounds(self):
-        """EN: preload *.wav under assets/sounds. ZH：预加载 assets/sounds 下的 *.wav。"""
+        """preload *.wav under assets/sounds.
+		预加载 assets/sounds 下的 *.wav。"""
         base_dir = os.path.dirname(os.path.abspath(__file__))
         sounds_dir = os.path.join(base_dir, "assets", "sounds")
         self.meow_effects.clear(); self.surprise_effects.clear()
@@ -768,16 +800,19 @@ class FocusCat(QtWidgets.QMainWindow):
             (self.surprise_effects if low.startswith(("surprise", "rare", "easter")) else self.meow_effects).append(eff)
 
     def _ensure_state_dir(self):
-        """EN: ensure state dir exists. ZH：确保状态目录存在。"""
+        """ensure state dir exists.
+		确保状态目录存在。"""
         d = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "state")
         os.makedirs(d, exist_ok=True)
 
     def _count_path(self) -> str:
-        """EN: return meow counter file path. ZH：返回计数文件路径。"""
+        """return meow counter file path.
+		返回计数文件路径。"""
         return os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "state", "meow_count.txt")
 
     def _load_meow_count(self):
-        """EN: load total count from file. ZH：从文件读取总计数。"""
+        """load total count from file.
+		从文件读取总计数。"""
         try:
             with open(self._count_path(), "r", encoding="utf-8") as f:
                 self.meow_count = int((f.read() or "0").strip())
@@ -786,7 +821,8 @@ class FocusCat(QtWidgets.QMainWindow):
         self.lbl_meow_count.setText(str(self.meow_count))
 
     def _save_meow_count(self):
-        """EN: save total count back to file. ZH：将总计数写回文件。"""
+        """save total count back to file.
+		将总计数写回文件。"""
         try:
             with open(self._count_path(), "w", encoding="utf-8") as f:
                 f.write(str(self.meow_count))
@@ -795,12 +831,14 @@ class FocusCat(QtWidgets.QMainWindow):
 
     # ===== Timer / 计时器 =====
     def _fmt_time(self):
-        """EN: mm:ss string for title/label. ZH：返回 mm:ss 格式字符串。"""
+        """mm:ss string for title/label.
+		返回 mm:ss 格式字符串。"""
         m, s = divmod(self.time_left, 60)
         return f"⏰ {m:02d}:{s:02d}"
 
     def start_timer(self):
-        """EN: start pomodoro. ZH：开始计时。"""
+        """start pomodoro.
+		开始计时。"""
         if self.running: return
         self.running = True
         self._set_quote("专注开始喵～" if self.quote_lang == "zh" else "Focus mode: meow on!")
@@ -808,20 +846,23 @@ class FocusCat(QtWidgets.QMainWindow):
         QtCore.QTimer.singleShot(1000, self._tick_timer)
 
     def pause_timer(self):
-        """EN: pause pomodoro. ZH：暂停计时。"""
+        """pause pomodoro.
+		暂停计时。"""
         if not self.running: return
         self.running = False
         self._set_quote("先歇一歇，喝口水喵～" if self.quote_lang == "zh" else "Take a sip and a breath~")
 
     def reset_timer(self):
-        """EN: reset to initial minutes. ZH：复位到初始分钟。"""
+        """reset to initial minutes.
+		复位到初始分钟。"""
         self.running = False
         self.time_left = POMODORO_MIN * 60
         self._render_timer()
         self._set_quote("重置完成，随时开始~" if self.quote_lang == "zh" else "Reset done. Ready anytime!")
 
     def _tick_timer(self):
-        """EN: countdown tick. ZH：倒计时步进。"""
+        """countdown tick.
+		倒计时步进。"""
         if not self.running: return
         if self.time_left > 0:
             self.time_left -= 1
@@ -833,19 +874,22 @@ class FocusCat(QtWidgets.QMainWindow):
                             else "Time! Stretch and come back meow~")
 
     def _render_timer(self):
-        """EN: refresh title & label with time. ZH：刷新标题与时间标签。"""
+        """refresh title & label with time.
+		刷新标题与时间标签。"""
         self.lbl_timer.setText(self._fmt_time())
         self.setWindowTitle(f"FocusCat — {self._fmt_time()}")
 
     # ===== Heartbeat & autosave / 心跳与自动保存 =====
     def _heartbeat_tick(self):
-        """EN: heartbeat refresh and sentence scan. ZH：心跳刷新与新句扫描。"""
+        """heartbeat refresh and sentence scan.
+		心跳刷新与新句扫描。"""
         if self.running:
             self.setWindowTitle(f"FocusCat — {self._fmt_time()}")
         self._scan_and_color_new_sentences()
 
     def _autosave(self):
-        """EN: write autosave file regularly. ZH：定期写入自动保存文件。"""
+        """write autosave file regularly.
+		定期写入自动保存文件。"""
         try:
             with open(DEFAULT_SAVE, "w", encoding="utf-8") as f:
                 f.write(self.editor.toPlainText())
@@ -855,7 +899,8 @@ class FocusCat(QtWidgets.QMainWindow):
 
 # ===== App entry / 程序入口 =====
 def main():
-    """EN: Qt app bootstrap. ZH：Qt 应用启动入口。"""
+    """Qt app bootstrap.
+		Qt 应用启动入口。"""
     app = QtWidgets.QApplication([])
     QtWidgets.QApplication.setStyle("Fusion")
 
