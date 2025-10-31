@@ -1,3 +1,8 @@
+"""
+Run:
+    Print: python tools/tree_gen.py --root . --max-depth 5
+    Write in README.md: python tools/tree_gen.py --root . --patch-readme README.md --max-depth 5
+"""
 from __future__ import annotations
 import os, sys, argparse, re
 from pathlib import Path

@@ -3,7 +3,7 @@
 Automated unit tests for FocusCat (headless-friendly).
 FocusCat 自动化单元测试（无界面可运行）。
 Run:
-  python -m unittest -v test_focuscat.py
+    python -m unittest -v test_focuscat.py
 """
 
 import os, re, tempfile, unittest, contextlib
