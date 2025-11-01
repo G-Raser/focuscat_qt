@@ -181,7 +181,8 @@ class FocusCat(QtWidgets.QMainWindow):
         self.meow_count       = 0
         self.meow_effects:    list[QSoundEffect] = []
         self.surprise_effects:list[QSoundEffect] = []
-        self.surprise_prob    = 0.10  # demo probability / 演示用概率
+        # self.surprise_prob    = 0.10  # demo probability / 演示用概率
+        self.surprise_prob = 0.01
         self._load_meow_sounds()
         self._ensure_state_dir()
 

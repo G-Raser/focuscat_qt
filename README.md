@@ -114,6 +114,7 @@ Make sure they are stored inside the `assets/` folder.
 ## 💡 Future Enhancements
 
 - Better UI Design.   
+- WordCount(I forgot LOL).
 - Save user preferences (theme, font, opacity, etc.).  
 - Expand English/Chinese motivational quote sets.  
 - Create more sentence colorsets for different background images.
